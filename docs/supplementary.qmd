@@ -1,0 +1,140 @@
+---
+title: "fNIRS Parkinson resting-state study - supplementary"
+bibliography: C:/pandoc/zotero_lib.bib
+format: 
+  html:
+    code-fold: true
+    code-summary: "Show the code"
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-expand: 2
+    theme: flatly
+    output-file: supplementary.html
+    
+editor: source
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=10, fig.height=5) 
+
+# load library
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(stringr)
+library(forcats)
+library(arsenal)
+
+library(ggpubr)
+library(ggplot2)
+library(patchwork)
+library(cowplot)
+library(ggiraph)
+library(ggpmisc)
+
+library(gt)
+library(gtExtras)
+library(ggstatsplot)
+library(knitr)
+library(kableExtra)
+
+```
+
+*Table 1 - Eigenvector centrality differences per channel, left*
+
+```{r, results='asis'}
+
+# Load and prepare all data
+braph_left_group <- "../data/braph_left_group_results.csv"
+braph_left_subject <- "../data/braph_left_subject_results.csv"
+braph_right_group <- "../data/braph_right_group_results.csv"
+braph_right_subject <- "../data/braph_right_subject_results.csv"
+
+# Load the data files
+braph_left_group_data <- read.csv(braph_left_group)
+braph_left_subject_data <- read.csv(braph_left_subject)
+braph_right_group_data <- read.csv(braph_right_group)
+braph_right_subject_data <- read.csv(braph_right_subject)
+
+braph_left_group_data <- braph_left_group_data[c("ch", "hc_ec", "pd_ec", "diff", "p1", "p2")]
+braph_left_group_data %>%
+  gt() %>%
+  fmt_number(
+    columns = everything(),
+    decimals = 3
+  ) %>%
+  fmt(
+    columns = c(p1, p2),
+    fns = function(x) {
+      ifelse(x < 0.001, "<0.001", sprintf("%.3f", x))
+    }
+  ) %>%
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_body(
+      rows = p2 < 0.05
+    )
+  )
+
+
+```
+
+*Table 2 - Eigenvector centrality differences per channel, right*
+
+```{r, results='asis'}
+
+braph_right_group_data <- braph_right_group_data[c("ch", "hc_ec", "pd_ec", "diff", "p1", "p2")]
+braph_right_group_data %>%
+  gt() %>%
+  fmt_number(
+    columns = everything(),
+    decimals = 3
+  ) %>%
+  fmt(
+    columns = c(p1, p2),
+    fns = function(x) {
+      ifelse(x < 0.001, "<0.001", sprintf("%.3f", x))
+    }
+  ) %>%
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_body(
+      rows = p2 < 0.05
+    )
+  )
+
+
+```
+
+Is data normally distributed?
+
+```{r, results='asis'}
+
+# Filter braph_left_subject_data for ch == "SRC10-DET9"
+filtered_braph <- braph_left_subject_data %>% filter(ch == "SRC10-DET9")
+
+# Reshape braph_left_subject_data to long format for merging
+braph_long <- filtered_braph %>%
+  pivot_longer(cols = starts_with("FNP"), names_to = "subject", values_to = "value")
+braph_long <- braph_long %>%
+  mutate(subject = gsub("rs", "", subject))
+
+shapiro_test_result <- shapiro.test(braph_long$value)
+
+# Create the QQ-plot
+qq_plot <- ggplot(braph_long, aes(sample = value)) +
+  stat_qq() +
+  stat_qq_line() +
+  labs(title = "QQ-Plot of Value",
+       x = "Theoretical Quantiles",
+       y = "Sample Quantiles") +
+  theme_minimal()
+
+# Print the QQ-plot
+print(qq_plot)
+print(shapiro_test_result)
+
+```
+

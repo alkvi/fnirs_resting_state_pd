@@ -1,0 +1,376 @@
+---
+title: "fNIRS Parkinson resting-state study - manuscript"
+bibliography: C:/pandoc/zotero_lib.bib
+format: 
+  html:
+    code-fold: true
+    code-summary: "Show the code"
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-expand: 2
+    theme: flatly
+    output-file: index.html
+    
+editor: source
+---
+
+```{css}
+/*| echo: false */
+figcaption {
+  margin: auto;
+  text-align: center;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=10, fig.height=5) 
+
+# load library
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(stringr)
+library(forcats)
+library(arsenal)
+
+library(ggpubr)
+library(ggplot2)
+library(patchwork)
+library(cowplot)
+library(ggiraph)
+library(ggpmisc)
+library(ggsignif)
+
+library(gt)
+library(gtExtras)
+library(ggstatsplot)
+library(knitr)
+library(kableExtra)
+
+```
+
+# Introduction
+
+Text
+
+# Material and methods
+
+## Hypotheses
+
+Introduce hypotheses here? H1-H3.
+
+## Participants
+
+People with Parkinson's disease (≥ 60 years, clinical diagnosis ≥ 6 months prior to enrollment) and age- and sex-matched controls were re-invited from the Park-MOVE cohort [@franzen2023], who had previously participated in an fNIRS study on complex walking. Exclusion criteria for the control group were medical conditions affecting gait and balance, or severe hearing or visual impairment. Exclusion criteria for the Parkinson group included other neurological diseases, severe hearing or visual impairment, other medical conditions affecting gait and balance, and speech difficulties such as aphasia.
+
+## Experimental procedure
+
+Data collection took place at the uMOVE core facility, Karolinska University Hospital, Solna, Stockholm. All data was collected during a single experimental session. Collected data consisted of resting-state fNIRS data, cognitive screening data (MoCA), and a clinical test of balance. The Parkinson group also performed the Movement Disorder Society sponsored revision of the Unified Parkinson’s Disease Rating Scale (MDS-UPDRS) to assess disease severity at the time of measurement.
+
+## Data acquisition
+
+The fNIRS system used was a NIRSport2 (NIRx) with 16 sources and 15 detectors, with 8 short-separation detectors. Optodes transmitted light at 760 and 850 nm. Sampling frequency was 7.6 Hz. Because optodes were not sufficient to ensure full-brain coverage, two measurements were taken in succession with one montage for the left hemisphere, and one for the right hemisphere (Figure 1). Each resting-state measurement lasted for 10 minutes.
+
+The resting-state measurements took place in a calm, dimly lit room, with participants seated in an office chair, legs placed on a leg rest to decrease movement. Eyes were closed, and participants were blindfolded as well. Ear plugs were used to shield from ambient noise. Participants were instructed not to focus on any special thought, let the mind wander, and to not fall asleep.
+
+## Data preprocessing
+
+Preprocessing of resting-state fNIRS data was performed with the MATLAB NIRS AnalyzIR toolbox (forked version; see Data availability for details) [@santosa2018]. Raw data was trimmed at the start and end of the measurement with 10 seconds on each side to avoid noise from position adjustments and similar. Raw data was then converted into optical density and into ΔHbO2 and ΔHHb using the modified Beer-Lambert law [@delpy1988]. The differential path-length factor (DPF) was set to depend on age [@scholkmann2013].
+
+Data quality was assessed using MNE-NIRS (v0.7.1) [@gramfort2013; @luke2021]. The scalp coupling index (SCI) was calculated on a per-channel basis and the percentage of bad channels (SCI < 0.7) among participants was plotted on the montage (supplementary). The worst quality channels were discarded from further analysis, 6 in total, leaving 44 long channels remaining. Moreover, because noise in short-channels may transfer noise into the signal of interest during short-channel regression, quality of the short-channel data was further assessed using their power spectrums [@novi2023] and channels were discarded if they lacked a clear heart-rate peak around 1 Hz (details of discarded channels in supplementary material).
+
+## Data analysis
+
+All-to-all channel correlation matrices were calculated from ΔHbO2 values using the connectivity module in the NIRS toolbox, with prewhitening and short-channel regression [@santosa2017; @lanka2022].
+
+To obtain graph metrics, in particular eigenvector centrality, correlation matrices were fed into the BRAPH2.0 (v2.0.0.b2) [@mijalkov2017] pipeline Connectivity Comparison WU (weighted undirected). This pipeline compares two groups of subjects by constructing weighted undirected graphs from input connectivity data, in this case the correlation matrices. Brain atlases for the BRAPH2.0 pipeline were obtained by exporting the projected MNI coordinates of channels in the used montages via AtlasViewer (v2.44.0) [@aasted2015].
+
+Differences in eigenvector centrality values were compared by non-parametric permutation tests with 10000 permutations, considered significant for a two-tailed t-test at p < .05. To account for multiple comparisons in the network results, false discovery rate (FDR) correction was applied, and the network was tested at q < .05.
+
+Finally, to test hypotheses in H3, correlation between eigenvector centrality and disease severity (MDS-UPDRS motor score), levodopa equivalent daily dose (LEDD), disease duration and MoCA score were calculated. Correlations were calculated for those channels showing the largest differences in eigenvector centrality values between the groups.
+
+::: {#fig-montage}
+
+![](../results_figures/rs_montage.png){#fig-montage-left-right}
+
+Montage used for the resting-state fNIRS measurement, showing optode configuration and sensitivity profiles generated in AtlasViewer for left and right hemispheres
+:::
+
+# Results
+
+```{r}
+
+# Load and prepare all data
+braph_left_group <- "../data/braph_left_group_results.csv"
+braph_left_subject <- "../data/braph_left_subject_results.csv"
+braph_right_group <- "../data/braph_right_group_results.csv"
+braph_right_subject <- "../data/braph_right_subject_results.csv"
+redcap_file <- "../data/REDcap_data.csv"
+updrs_file <- "../data/REDcap_data_updrs.csv"
+
+# This file contains data from the 1st measurement, including diagnosis date
+redcap_file_parkmove <- "../../Park-MOVE_fnirs_dataset_v2/REDcap_data/All_REDcap_data.csv"
+demo_file_parkmove <- "../../Park-MOVE_fnirs_dataset_v2/basic_demographics.csv"
+
+# This file has measurement date
+measurement_date_file <- "../data/measurement_dates_rs_fnirs.csv"
+
+# How handle correlations?
+corr_method <- "spearman"
+
+# Load the data files
+braph_left_group_data <- read.csv(braph_left_group)
+braph_left_subject_data <- read.csv(braph_left_subject)
+braph_right_group_data <- read.csv(braph_right_group)
+braph_right_subject_data <- read.csv(braph_right_subject)
+
+redcap_data <- read.csv(redcap_file)
+redcap_data <- redcap_data[c("id_nummer", "moca_sum", "moca_sum_adjusted", "mb_total", "led_total", "frandin_grimby", "ramlat_12_man", "antal_ggr_ramlat_12_man")]
+redcap_data['ramlat_12_man'][redcap_data['ramlat_12_man'] == 0] <- 'No'
+redcap_data['ramlat_12_man'][redcap_data['ramlat_12_man'] == 1] <- 'Yes'
+redcap_data$ramlat_12_man <- factor(redcap_data$ramlat_12_man, levels=c('No', 'Yes'))
+
+updrs_data <- read.csv(updrs_file)
+updrs_data$updrs_3_total <- rowSums(updrs_data[, 35:66], na.rm = TRUE)
+updrs_data <- updrs_data[c("id_nummer", "updrs_3_total", "mdsupdrs3_hy")]
+
+# Merge REDcap demographics data and UPDRS data
+all_subject_data <- merge(redcap_data, updrs_data, by = "id_nummer", all = TRUE)
+names(all_subject_data)[names(all_subject_data) == "id_nummer"] <- "subject"
+
+# Make the subject names the same format
+all_subject_data <- all_subject_data %>%
+  mutate(subject = gsub("_rs", "", subject))
+
+# Data from original study for demographics
+redcap_data_parkmove <- read.csv(redcap_file_parkmove)
+names(redcap_data_parkmove)[names(redcap_data_parkmove) == "id_nummer"] <- "subject"
+redcap_data_parkmove <- redcap_data_parkmove[redcap_data_parkmove$subject %in% all_subject_data$subject, ]
+demo_data_parkmove <- read.csv(demo_file_parkmove)
+demo_data_parkmove <- demo_data_parkmove[demo_data_parkmove$subject %in% all_subject_data$subject, ]
+demo_data_parkmove <- demo_data_parkmove[c("subject", "sex", "age", "weight", "height")]
+demo_data_parkmove['sex'][demo_data_parkmove['sex'] == 0] <- 'Male'
+demo_data_parkmove['sex'][demo_data_parkmove['sex'] == 1] <- 'Female'
+demo_data_parkmove$sex <- factor(demo_data_parkmove$sex, levels=c('Male', 'Female'))
+
+# Get disease duration via diagnosis date and measurement date
+diagnosis_data <- redcap_data_parkmove[c("subject", "crf_pd_year_phone")]
+measurement_dates <- read.csv(measurement_date_file, sep=";")
+measurement_dates$measurement_date_t1 <- as.Date(measurement_dates$measurement_date_t1, format = "%Y-%m-%d")
+measurement_dates$year <- format(measurement_dates$measurement_date_t1, "%Y")
+measurement_dates <- measurement_dates[c("subject", "year")]
+measurement_dates <- merge(diagnosis_data, measurement_dates, by = "subject", all = TRUE)
+measurement_dates$disease_dur <- as.numeric(measurement_dates$year) - as.numeric(measurement_dates$crf_pd_year_phone)
+measurement_dates <- measurement_dates[c("subject", "disease_dur")]
+all_subject_data <- merge(all_subject_data, measurement_dates, by = "subject", all = TRUE)
+
+# Add other demographics
+all_subject_data <- merge(all_subject_data, demo_data_parkmove, by = "subject", all = TRUE)
+
+
+# Assign group function
+assign_group <- function(df) {
+  df$group <- case_when(
+    startsWith(df$subject, "FNP1") ~ "Control",
+    startsWith(df$subject, "FNP2") ~ "Parkinson",
+    TRUE ~ NA_character_
+  )
+  df$group <- factor(df$group, levels=c('Control', 'Parkinson'))
+  return(df)
+}
+
+all_subject_data <- assign_group(all_subject_data)
+
+```
+
+## Demographics
+
+```{r, results='asis'}
+
+# https://cran.r-project.org/web/packages/arsenal/vignettes/tableby.html
+
+# Cleaner names
+labels(all_subject_data)  <- c(
+  age = "Age, yrs", 
+  sex = "Gender, female",
+  weight = "Weight, kg",
+  height = "Height, cm",
+  frandin_grimby = "Frändin-Grimby",
+  ramlat_12_man = "Falls in last 12 months, yes",
+  mb_total = "Mini-BESTest score")
+
+# Properties for all tables
+mycontrols  <- tableby.control(numeric.test="kwt", cat.test="chisq",  cat.simplify = TRUE, cat.stats="countpct",
+                               numeric.simplify=TRUE, numeric.stats=c("meansd"),
+                               digits=2, digits.p=2, digits.pct=1)
+
+# Tables
+tab1 <- tableby(group ~ sex + age + weight + height +
+                mb_total, data=all_subject_data, control=mycontrols)
+
+summary(tab1, title = "Table 1 - Demographics")
+
+```
+
+## Eigenvector centrality
+
+The largest eigenvector centrality values were found in the temporal and parietal regions (Figure 2). Values were similar for the left and right hemispheres/sessions and ranged from approximately 0.05 to 0.23 (supplementary table 1 and 2). 
+
+Differences in eigenvector centrality values between the groups (Figure 3, supplementary table 1 and 2) revealed a single channel with a significantly lower value in the Parkinson group compared to the control group (SRC10-DET9, HC 0.153, PD 0.119, difference −0.034, p .034). The center of this channel was according to AtlasViewer simulations located at MNI coordinates (-39	-54	46). However, the channel did not survive FDR-adjustment.
+
+::: {#fig-ec-groups layout-nrow=2 layout-ncol=2}
+
+![Control left](../results_figures/braph_left_hc.jpg){#fig-hc-left}
+
+![Control right](../results_figures/braph_right_hc.jpg){#fig-hc-right}
+
+![Parkinson left](../results_figures/braph_left_pd.jpg){#fig-pd-left}
+
+![Parkinson right](../results_figures/braph_right_pd.jpg){#fig-pd-right}
+
+Eigenvector centrality values in each group plotted on BRAPH template human_ICBM152. Size and color of circles indicate eigenvector centrality value.
+:::
+
+::: {#fig-ec-diff layout-ncol=2}
+
+![Difference Parkinson and controls left](../results_figures/braph_left_diff_marked.png){#fig-hc-left}
+
+![Difference Parkinson and controls right](../results_figures/braph_right_diff.jpg){#fig-hc-right}
+
+Differences in eigenvector centrality values plotted on BRAPH template human_ICBM152. Size and color of circles indicate difference eigenvector centrality value. Blue indicates Parkinson < Control. Red indicates Parkinson > Control. Significant difference from permutation test (p < .05) marked in green.
+:::
+
+## Correlation plots for Parkinson group
+
+Correlation plots for channel SRC10-DET9 in the left hemisphere, which showest the largest difference in eigenvector centrality between the groups, are shown in Figure 4. There were no correlations between eigenvector centrality values and any tested correlate.
+
+```{r}
+#| warning: false
+#| fig-cap: "Figure 4: correlation between eigenvector centrality and disease severity (MDS-UPDRS motor score), levodopa equivalent daily dose (LEDD), disease duration and MoCA score for channel SRC10-DET9 in the Parkinson group"
+
+# Filter braph_left_subject_data for ch == "SRC10-DET9"
+filtered_braph <- braph_left_subject_data %>% filter(ch == "SRC10-DET9")
+
+# Reshape braph_left_subject_data to long format for merging
+braph_long <- filtered_braph %>%
+  pivot_longer(cols = starts_with("FNP"), names_to = "subject", values_to = "value")
+braph_long <- braph_long %>%
+  mutate(subject = gsub("rs", "", subject))
+
+# Merge with all_subject_data
+merged_data <- braph_long %>%
+  inner_join(all_subject_data, by = c("subject" = "subject"))
+merged_data <- assign_group(merged_data)
+
+# Filter data for group PD
+pd_data <- merged_data %>% filter(group == "Parkinson")
+
+plot1 <- ggplot(pd_data, aes(x = updrs_3_total, y = value)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  stat_cor(method = corr_method) +
+  labs(title = "Correlation between EC values and MDS-UPDRS",
+       x = "MDS-UPDRS 3 motor score",
+       y = "Eigenvector Centrality")
+
+plot2 <- ggplot(pd_data, aes(x = led_total, y = value)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  stat_cor(method = corr_method) +
+  labs(title = "Correlation between EC values and LEDD",
+       x = "LEDD",
+       y = "Eigenvector Centrality")
+
+plot3 <- ggplot(pd_data, aes(x = disease_dur, y = value)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  stat_cor(method = corr_method) +
+  labs(title = "Correlation between EC values and disease duration",
+       x = "disease duration",
+       y = "Eigenvector Centrality")
+
+plot4 <- ggplot(pd_data, aes(x = moca_sum_adjusted, y = value)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  stat_cor(method = corr_method) +
+  labs(title = "Correlation between EC values and MoCA",
+       x = "MoCA score",
+       y = "Eigenvector Centrality")
+
+plot_grid(plotlist=list(plot1, plot2, plot3, plot4), ncol=2, nrow=2)
+
+
+```
+
+
+## Exploratory analysis
+
+Additional exploration of correlation between eigenvector centrality and balance ability (Mini-BESTest score), number of falls within the last 12 months and level of activity (Frändin-Grimby score) did not reveal any significant correlation (Figure 5).
+
+Difference in eigenvector centrality values were tested between fallers and non-fallers (Figure 6) and did not reveal any significant difference.
+
+NOTE: have not calculated for number of falls yet, will add
+
+```{r}
+#| warning: false
+#| fig-cap: "Figure 5: correlation between eigenvector centrality and balance and activity levels in both groups"
+
+# Plot correlation
+plot1 <- ggplot(merged_data, aes(x = mb_total, y = value)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  stat_cor(method = corr_method) +
+  labs(title = "Correlation between EC values and balance (Mini-BESTest)",
+       x = "Mini-BESTest score",
+       y = "Eigenvector Centrality") +
+  facet_wrap(~ group) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+plot2 <- ggplot(merged_data, aes(x = frandin_grimby, y = value)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  stat_cor(method = corr_method) +
+  labs(title = "Correlation between EC values and activity (Frändin-Grimby)",
+       x = "Frändin-Grimby score",
+       y = "Eigenvector Centrality") +
+  facet_wrap(~ group) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+plot_grid(plotlist=list(plot1, plot2), ncol=1, nrow=2)
+
+
+```
+
+```{r}
+#| warning: false
+#| fig-cap: "Figure 6: difference in eigenvector centrality between fallers and non-fallers within the last 12 months"
+
+# Ensure the 'ramlat_12_man' column is a factor
+merged_data$ramlat_12_man <- as.factor(merged_data$ramlat_12_man)
+
+# Create box plot with significance markers
+# Note value is non-normal so use non-parametric
+
+plot1 <- ggplot(merged_data, aes(x = ramlat_12_man, y = value)) +
+  geom_boxplot() +
+  geom_signif(test = "wilcox.test", 
+              comparisons = list(c("Yes", "No")), 
+              map_signif_level = TRUE) +
+  labs(x = "Falls within last 12 months",
+       y = "Eigenvector Centrality") +
+  theme_minimal() +
+  facet_wrap(~ group)
+
+# Print the box plot
+plot1
+
+
+```
+
+# Discussion
+
+# Conclusion
+
+# References

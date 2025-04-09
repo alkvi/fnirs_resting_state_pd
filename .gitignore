@@ -1,0 +1,9 @@
+data
+data/*
+
+quality_control/*.png
+quality_control/*.JPG
+quality_control/figures
+quality_control/*.csv
+
+.Rhistory
