@@ -51,6 +51,18 @@ library(kableExtra)
 
 ```
 
+# Temporary notes
+
+Github repository: <https://github.com/alkvi/fnirs_resting_state_pd>
+
+fNIRS analysis to get correlation matrices is in [subject_correlation.m](https://github.com/alkvi/fnirs_resting_state_pd/blob/main/subject_correlation.m).
+
+The BRAPH2.0 pipeline is in [braph_pipeline.m](https://github.com/alkvi/fnirs_resting_state_pd/blob/main/braph_pipeline.m).
+
+This document is built from the QMD file in the [docs folder](https://github.com/alkvi/fnirs_resting_state_pd/tree/main/docs).
+
+Supplementary files in [supplementary](https://alkvi.github.io/fnirs_resting_state_pd/supplementary).
+
 # Introduction
 
 Text
