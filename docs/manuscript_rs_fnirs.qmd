@@ -220,7 +220,7 @@ mycontrols  <- tableby.control(numeric.test="kwt", cat.test="chisq",  cat.simpli
 
 # Tables
 tab1 <- tableby(group ~ sex + age + weight + height +
-                mb_total, data=all_subject_data, control=mycontrols)
+                mb_total + updrs_3_total + led_total, data=all_subject_data, control=mycontrols)
 
 summary(tab1, title = "Table 1 - Demographics")
 

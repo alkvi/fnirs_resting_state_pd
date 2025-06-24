@@ -5,7 +5,10 @@
 %% Load BIDS
 
 % Which session are we computing for?
-session_to_run = "right";
+session_to_run = "left";
+
+% Which hemo measure?
+hemo_measure = 'cbsi';
 
 % Load the NIRx probe used
 probe_folder = "data/nirx_probe_" + session_to_run;
@@ -110,6 +113,7 @@ for subj_idx=1:length(raw_data)
     % Some subject strings for saving data
     subject_id = raw_data(subj_idx).demographics.bids_subject;
     session = raw_data(subj_idx).demographics.session;
+    subject_raw_data = raw_data(subj_idx);
 
     % Just run one side for now
     if ~strcmp(session, session_to_run)
@@ -117,17 +121,50 @@ for subj_idx=1:length(raw_data)
     end
 
     % Trim the data
-    d = raw_data(subj_idx).data;
-    t = raw_data(subj_idx).time;
+    d = subject_raw_data.data;
+    t = subject_raw_data.time;
     valid_time = t >= 10 & t <= max(t) - 10;
     d_trim = d(valid_time,:);
     t_trim = t(valid_time,:);
-    raw_data(subj_idx).data = d_trim;
-    raw_data(subj_idx).time = t_trim;
+    subject_raw_data.data = d_trim;
+    subject_raw_data.time = t_trim;
+
+    % Label which channels are short-separation.
+    job = nirs.modules.LabelShortSeperation();
+    job.max_distance = 8;
+    subject_raw_data = job.run(subject_raw_data);
+    
+    % Some sources will connect to adjacent short-distance detectors which will
+    % look like a long channel but actually is not. Mark these also.
+    short_separation_idx = (subject_raw_data.probe.link.detector >= 16);
+    subject_raw_data.probe.link.ShortSeperation(short_separation_idx) = 1;
+
+    % Run MBLL
+    j=nirs.modules.OpticalDensity;
+    j=nirs.modules.BeerLambertLaw(j);
+    hb = j.run(subject_raw_data);
+    
+    % Get combined measure
+    job = nirs.modules.CalculateCBSI();
+    hb = job.run(hb);
+    
+    % Only look at specified measure.
+    job=nirs.modules.KeepTypes;
+    job.types={hemo_measure};
+    hb=job.run(hb);
+
+    % Now make sure bad entries are marked in hb data
+    % Get the link table with  bad short channels marked and filter for one 
+    % type, copy over to hb probe (table lengths should always match with just
+    % one type)
+    link_table = subject_raw_data.probe.link(subject_raw_data.probe.link.type == 850,:);
+    bad_idx = link_table.bad == 1;
+    hb.probe.link.bad(:) = 0;
+    hb.probe.link.bad(bad_idx) = 1;
 
     % Run individual analysis
-    fprintf("Getting ConnStats for for subj %s session %s\n", subject_id, session);
-    [ConnStats, Graph, hb] = get_connectivity_stats(raw_data(subj_idx));
+    fprintf("Getting ConnStats for for subj %s session %s measure %s\n", subject_id, session, hemo_measure);
+    [ConnStats, Graph] = get_connectivity_stats(hb, hemo_measure);
     
     % The actual matrices from the analysis
     pearson_matrix = ConnStats.R;
@@ -155,7 +192,6 @@ for subj_idx=1:length(raw_data)
         s = bad_src(pair_idx);
         d = bad_det(pair_idx);
         bad_idx = (link.source == s) & (link.detector == d);
-
         pearson_matrix(bad_idx,:) = [];
         pearson_matrix(:,bad_idx) = [];
         adjacency_matrix(bad_idx,:) = [];
@@ -164,44 +200,14 @@ for subj_idx=1:length(raw_data)
     end
     
     % Write the final matrices to file
-    filebase = matrix_folder + "/" + string(subj_idx) + "_" + subject_id + "_" + session;
+    filebase = matrix_folder + "/" + string(subj_idx) + "_" + subject_id + "_" + session + "_" + hemo_measure;
     writematrix(pearson_matrix, filebase + "_R.xlsx")
     writematrix(adjacency_matrix, filebase + "_adjacency.xlsx")
 end
 
 %% Get connectivity
 
-function [ConnStats, Graph, hb] = get_connectivity_stats(raw_data)
-
-% Label which channels are short-separation.
-job = nirs.modules.LabelShortSeperation();
-job.max_distance = 8;
-raw_data = job.run(raw_data);
-
-% Some sources will connect to adjacent short-distance detectors which will
-% look like a long channel but actually is not. Mark these also.
-for i=1:size(raw_data,1)
-    short_separation_idx =(raw_data(i).probe.link.detector >= 16);
-    raw_data(i).probe.link.ShortSeperation(short_separation_idx) = 1;
-end
-
-% Run MBLL
-j=nirs.modules.OpticalDensity;
-j=nirs.modules.BeerLambertLaw(j);
-hb = j.run(raw_data);
-
-% Only look at HbO.
-job=nirs.modules.KeepTypes;
-job.types={'hbo'};
-hb=job.run(hb);
-
-% Get the link table with 
-% bad short channels marked and filter for hbo, 
-% copy over to hb probe
-link_table = raw_data.probe.link(raw_data.probe.link.type == 850,:);
-bad_idx = link_table.bad == 1;
-hb.probe.link.bad(:) = 0;
-hb.probe.link.bad(bad_idx) = 1;
+function [ConnStats, Graph] = get_connectivity_stats(hb, hemo_measure)
 
 % Calculate connectivity.
 % ConnStats are sFCStats objects containing correlation values (all-to-all)
@@ -209,7 +215,8 @@ hb.probe.link.bad(bad_idx) = 1;
 job = nirs.modules.Connectivity;
 job.AddShortSepRegressors = true;
 ConnStats = job.run(hb);
-Graph = ConnStats.graph('Z:hbo','p<0.005');
+graph_label = strcat(['Z:', hemo_measure]);
+Graph = ConnStats.graph(graph_label,'p<0.005');
 
 % Figures
 % ConnStats.draw('R',[-1 1],'p<0.05');

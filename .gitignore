@@ -7,3 +7,7 @@ quality_control/figures
 quality_control/*.csv
 
 .Rhistory
+
+*.mat
+exploratory_figures
+visualize_graph.py
