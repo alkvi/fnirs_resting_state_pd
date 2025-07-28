@@ -317,7 +317,7 @@ plot_grid(plotlist=list(plot1, plot2, plot3, plot4), ncol=2, nrow=2)
 ```
 
 
-## Exploratory analysis
+## Exploratory analysis - additional correlations
 
 Additional exploration of correlation between eigenvector centrality and balance ability (Mini-BESTest score), number of falls within the last 12 months and level of activity (Frändin-Grimby score) did not reveal any significant correlation (Figure 5).
 
@@ -380,6 +380,74 @@ plot1
 
 
 ```
+
+## Exploratory analysis - other graph measures
+
+```{r}
+
+braph_expl_left_global <- "../data/braph_left_exploratory_results_global.csv"
+braph_expl_left_nodal <- "../data/braph_left_exploratory_results_nodal.csv"
+braph_expl_right_global <- "../data/braph_right_exploratory_results_global.csv"
+braph_expl_right_nodal <- "../data/braph_right_exploratory_results_nodal.csv"
+
+# Load the data files
+braph_expl_left_global_data <- read.csv(braph_expl_left_global)
+braph_expl_left_nodal_data <- read.csv(braph_expl_left_nodal)
+braph_expl_right_global_data <- read.csv(braph_expl_right_global)
+braph_expl_right_nodal_data <- read.csv(braph_expl_right_nodal)
+
+# FDR corr
+braph_expl_left_nodal_data <- braph_expl_left_nodal_data %>%
+  group_by(Measure) %>%
+  mutate(P2_FDR = p.adjust(P2, method = "fdr")) %>%
+  ungroup()
+braph_expl_right_nodal_data <- braph_expl_right_nodal_data %>%
+  group_by(Measure) %>%
+  mutate(P2_FDR = p.adjust(P2, method = "fdr")) %>%
+  ungroup()
+
+# Find significant
+significant_results_left <- braph_expl_left_nodal_data %>%
+  filter(P2_FDR < 0.05)
+significant_results_right <- braph_expl_right_nodal_data %>%
+  filter(P2_FDR < 0.05)
+
+significant_results_left %>%
+  gt() %>%
+  fmt_number(
+    columns = everything(),
+    decimals = 2
+  )
+
+significant_results_right %>%
+  gt() %>%
+  fmt_number(
+    columns = everything(),
+    decimals = 2
+  )
+
+# significant_results_left %>%
+#   gt() %>%
+#   cols_hide(columns = c("Aim", "Fstat", "Fstat_p", "Rsquared", "Rsquared_adj")) %>%
+#   fmt_number(
+#     columns = everything(),
+#     decimals = 2
+#   )
+#   fmt(
+#     columns = c(P2_FDR),
+#     fns = function(x) {
+#       ifelse(x < 0.001, "<.001", sprintf("%.3f", x))
+#     }
+#   ) %>%
+#   tab_style(
+#     style = cell_text(weight = "bold"),
+#     locations = cells_body(
+#       rows = p_adjusted < 0.05
+#     )
+#   )
+
+```
+
 
 # Discussion
 

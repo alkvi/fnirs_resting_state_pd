@@ -4,7 +4,8 @@
 
 %% Settings
 
-side = "left";
+rng(1,"twister");
+side = "right";
 
 atlas_file_loc = 'atlasviewer_' + side + '.xlsx';
 results_file_group = 'data/braph_' + side + '_group_results.csv';
