@@ -8,6 +8,9 @@ quality_control/*.JPG
 quality_control/figures
 quality_control/*.csv
 
+docs/*.docx
+docs/pandoc-acro
+
 .Rhistory
 
 *.mat
