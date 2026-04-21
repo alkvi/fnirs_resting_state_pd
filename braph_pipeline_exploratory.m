@@ -1,5 +1,5 @@
 % Ran on MATLAB R2024a
-% BRAPH2.0 branch develop, latest commit Thu Nov 7 2024 
+% BRAPH2.0 branch develop, latest commit Thu Nov 7 2024
 % commit sha 53095632a82c562f86e44ff415a613ce24f00f99
 
 %% Settings
@@ -7,7 +7,7 @@
 rng(1,"twister");
 side = "left";
 
-atlas_file_loc = 'atlasviewer_' + side + '.xlsx';
+atlas_file_loc = 'data_public/atlasviewer_' + side + '.xlsx';
 results_file_global = 'data/braph_' + side + '_exploratory_results_global.csv';
 results_file_nodal = 'data/braph_' + side + '_exploratory_results_nodal.csv';
 hc_group = 'HC_' + side;
@@ -49,10 +49,10 @@ gr2 = im_gr2.get('GR');
 %% Group analysis
 
 % Analyze Group 1 % Group 1 Analysis
-a_WU1 = AnalyzeEnsemble_CON_WU('GR', gr1); 
+a_WU1 = AnalyzeEnsemble_CON_WU('GR', gr1);
 
 % Analyze Group 2 % Group 2 Analysis
-a_WU2 = AnalyzeEnsemble_CON_WU('GR', gr2, 'TEMPLATE', a_WU1); 
+a_WU2 = AnalyzeEnsemble_CON_WU('GR', gr2, 'TEMPLATE', a_WU1);
 
 %% Run comparison
 

@@ -1,17 +1,15 @@
 import os
+from itertools import compress
+
+import matplotlib.pyplot as plt
 import mne
+import mne_nirs
 import numpy as np
 import pandas as pd
-from itertools import compress
-import matplotlib.pyplot as plt
-
-import mne_nirs
 from mne.preprocessing.nirs import optical_density
-from mne_bids import BIDSPath, read_raw_bids, print_dir_tree, make_report
-
+from mne_bids import BIDSPath, make_report, print_dir_tree, read_raw_bids
 
 if __name__ == "__main__":
-
     # Where will results go
     result_file_name = "../data/bad_shorts.csv"
 
@@ -19,17 +17,10 @@ if __name__ == "__main__":
     bids_root = "../data/park_move_rs_fnirs_bids"
     nirx_folder = "../data/original_nirx_data"
 
-    plot_subject = True
-
     # We have 4 file types: events, channels, optodes, and nirs.
-    datatype = 'nirs'
+    datatype = "nirs"
     bids_path = BIDSPath(root=bids_root, datatype=datatype)
     nirs_files = bids_path.match()
-
-    # For visualization
-    subjects_dir = str(mne.datasets.sample.data_path()) + '/subjects'
-    mne.datasets.fetch_fsaverage(subjects_dir=subjects_dir)
-    mne.set_config('MNE_NIRS_FOLD_PATH', 'C:/Users/alkvis/OneDrive - Karolinska Institutet/Dokument/Software/fOLD-public/Supplementary')
 
     # Get all subjects in a sorted list
     all_subjects = [file.subject for file in nirs_files]
@@ -38,8 +29,8 @@ if __name__ == "__main__":
     print(all_subjects)
 
     # Prepare params
-    task = 'rest'
-    suffix = 'nirs'
+    task = "rest"
+    suffix = "nirs"
     sessions = ["left", "right"]
 
     # Have we already written some results?
@@ -54,17 +45,26 @@ if __name__ == "__main__":
     subject_frames = []
     for subject in all_subjects:
         for session in sessions:
-
             # Does this session already exist?
-            processed = (data_exists) and \
-            (not existing_data[(existing_data['subject'] == subject) & (existing_data['session'] == session)].empty)
+            processed = (data_exists) and (
+                not existing_data[
+                    (existing_data["subject"] == subject)
+                    & (existing_data["session"] == session)
+                ].empty
+            )
             if processed:
                 print(f"Skipping processed session {subject} / {session}")
                 continue
 
             # Load
-            bids_path = BIDSPath(subject=subject, task=task, session=session,
-                                suffix=suffix, datatype=datatype, root=bids_root)
+            bids_path = BIDSPath(
+                subject=subject,
+                task=task,
+                session=session,
+                suffix=suffix,
+                datatype=datatype,
+                root=bids_root,
+            )
             print("Using BIDS file path..")
             print(bids_path)
             if not os.path.exists(bids_path):
@@ -86,7 +86,12 @@ if __name__ == "__main__":
             # Get bad channels for subject/session
             bad_channels = list(compress(raw_intensity.ch_names, overall_sci < 0.7))
             od.info["bads"] = list(compress(od.ch_names, overall_sci < 0.7))
-            bad_channels = np.unique([channel.replace(" 760", "").replace(" 850", "") for channel in np.unique(bad_channels)]).tolist()
+            bad_channels = np.unique(
+                [
+                    channel.replace(" 760", "").replace(" 850", "")
+                    for channel in np.unique(bad_channels)
+                ]
+            ).tolist()
             print(bad_channels)
 
             # MBLL
@@ -95,34 +100,51 @@ if __name__ == "__main__":
             # Get only short channels
             raw_haemo_short = raw_haemo.copy()
             picks = mne.pick_types(raw_haemo_short.info, meg=False, fnirs=True)
-            dists = mne.preprocessing.nirs.source_detector_distances(raw_haemo_short.info, picks=picks)
+            dists = mne.preprocessing.nirs.source_detector_distances(
+                raw_haemo_short.info, picks=picks
+            )
             raw_haemo_short = raw_haemo_short.pick(picks[dists < 0.01])
 
             # Load aux data
             # First find matching NIRx folder
-            nirx_subj_folder = [f.path for f in os.scandir(nirx_folder) if (f.is_dir() and subject.replace('rs', '') in f.path)]
+            nirx_subj_folder = [
+                f.path
+                for f in os.scandir(nirx_folder)
+                if (f.is_dir() and subject.replace("rs", "") in f.path)
+            ]
             nirx_subj_folder = f"{nirx_subj_folder[0]}/{session}"
-            nirx_snirf_file = [f.path for f in os.scandir(nirx_subj_folder) if "snirf" in f.path][0]
+            nirx_snirf_file = [
+                f.path for f in os.scandir(nirx_subj_folder) if "snirf" in f.path
+            ][0]
             raw_nirx_snirf = mne.io.read_raw_snirf(nirx_snirf_file)
             aux_df = mne_nirs.io.read_snirf_aux_data(nirx_snirf_file, raw_nirx_snirf)
 
             # Short channel plots
             no_channels = len(raw_haemo_short.ch_names)
-            raw_haemo_short.plot(n_channels=no_channels, duration=500, picks="hbo",
-                        show_scrollbars=True, show_scalebars=True,
-                        scalings=dict(hbo='1e-4', hbr='1e-4'))
-            
-            fig = raw_haemo_short.compute_psd().plot(average=False, amplitude=False, picks="data")
+            raw_haemo_short.plot(
+                n_channels=no_channels,
+                duration=500,
+                picks="hbo",
+                show_scrollbars=True,
+                show_scalebars=True,
+                scalings=dict(hbo="1e-4", hbr="1e-4"),
+            )
+
+            fig = raw_haemo_short.compute_psd().plot(
+                average=False, amplitude=False, picks="data"
+            )
             fig.suptitle(f"PSD shorts", weight="bold", size="x-large")
 
             # Ask for bad channels to mark
-            bad_short_string = input("Enter bad channels S#-D#, separate with comma (,):\n")
+            bad_short_string = input(
+                "Enter bad channels S#-D#, separate with comma (,):\n"
+            )
             plt.show()
 
             short_data = {
-                'subject': [subject],
-                'session': [session],
-                'bad_shorts': [bad_short_string],
+                "subject": [subject],
+                "session": [session],
+                "bad_shorts": [bad_short_string],
             }
             short_frame = pd.DataFrame(data=short_data)
             subject_frames.append(short_frame)
@@ -133,8 +155,6 @@ if __name__ == "__main__":
 
     # Write to csv
     if data_exists:
-        full_frame.to_csv(result_file_name, index=False, mode='a', header=False)
+        full_frame.to_csv(result_file_name, index=False, mode="a", header=False)
     else:
         full_frame.to_csv(result_file_name, index=False)
-
-    

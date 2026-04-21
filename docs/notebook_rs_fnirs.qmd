@@ -1,7 +1,7 @@
 ---
 title: "fNIRS Parkinson resting-state study - notebook"
 bibliography: /Users/alexander.kvist/Zotero/zotero_library.bib
-format: 
+format:
   html:
     code-fold: true
     code-summary: "Show the code"
@@ -11,7 +11,7 @@ format:
     toc-expand: 2
     theme: flatly
     output-file: index.html
-    
+
 editor: source
 ---
 
@@ -25,7 +25,7 @@ figcaption {
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_chunk$set(fig.width=10, fig.height=5) 
+knitr::opts_chunk$set(fig.width=10, fig.height=5)
 
 # load library
 library(dplyr)
@@ -84,16 +84,16 @@ bad_short_file <- "../data/bad_shorts.csv"
 bad_shorts <- read.csv(bad_short_file)
 
 # Drop subject ID, just keep index for later verification if re-run
-bad_shorts <- bad_shorts |> 
+bad_shorts <- bad_shorts |>
   mutate(subject_index = row_number()) |>
   select(subject_index, session, bad_shorts)
 
 # Keep only non-empty
-bad_shorts_clean <- bad_shorts |> 
+bad_shorts_clean <- bad_shorts |>
   filter(!is.na(bad_shorts), bad_shorts != "")
 
-bad_shorts_clean |> 
-  gt() |> 
+bad_shorts_clean |>
+  gt() |>
   tab_header(
     title = "Bad shorts per session"
   )
@@ -198,7 +198,7 @@ all_subject_data <- assign_group(all_subject_data)
 
 # Cleaner names
 labels(all_subject_data)  <- c(
-  age = "Age, yrs", 
+  age = "Age, yrs",
   sex = "Gender, female",
   weight = "Weight, kg",
   height = "Height, cm",
@@ -221,7 +221,7 @@ summary(tab1, title = "Table 1 - Demographics")
 
 ## Eigenvector centrality
 
-The largest eigenvector centrality values were found in the temporal and parietal regions (Figure 2). Values were similar for the left and right hemispheres/sessions and ranged from approximately 0.05 to 0.23 (supplementary table 1 and 2). 
+The largest eigenvector centrality values were found in the temporal and parietal regions (Figure 2). Values were similar for the left and right hemispheres/sessions and ranged from approximately 0.05 to 0.23 (supplementary table 1 and 2).
 
 Differences in eigenvector centrality values between the groups (Figure 3, supplementary table 1 and 2) revealed a single channel with a significantly lower value in the Parkinson group compared to the control group (SRC10-DET9, HC 0.153, PD 0.119, difference −0.034, p .034). The center of this channel was according to AtlasViewer simulations located at MNI coordinates (-39	-54	46). However, the channel did not survive FDR-adjustment.
 
@@ -253,7 +253,7 @@ Differences in eigenvector centrality values plotted on BRAPH template human_ICB
 
 # Find significant BRAPH results
 braph_left_significant = braph_left_group_data |>
-  filter(p2 < 0.05) 
+  filter(p2 < 0.05)
 
 braph_left_significant |>
   gt() |>
@@ -265,8 +265,8 @@ braph_left_significant |>
     decimals = 4
   )
 
-# Find matching coordinate 
-atlas_file <- "../data/braph_data/atlasviewer_left.xlsx"
+# Find matching coordinate
+atlas_file <- "../data_public/atlasviewer_left.xlsx"
 
 atlasviewer_left <- read_excel(
   atlas_file,
@@ -419,8 +419,8 @@ merged_data$ramlat_12_man <- as.factor(merged_data$ramlat_12_man)
 
 plot1 <- ggplot(merged_data, aes(x = ramlat_12_man, y = value)) +
   geom_boxplot() +
-  geom_signif(test = "wilcox.test", 
-              comparisons = list(c("Yes", "No")), 
+  geom_signif(test = "wilcox.test",
+              comparisons = list(c("Yes", "No")),
               map_signif_level = TRUE) +
   labs(x = "Falls within last 12 months",
        y = "Eigenvector Centrality") +
@@ -478,7 +478,7 @@ significant_results_right %>%
     decimals = 2
   )
 
-# Find matching coordinate 
+# Find matching coordinate
 matched_atlas_rows <- atlasviewer_left |>
   semi_join(
     significant_results_left,

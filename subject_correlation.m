@@ -11,7 +11,7 @@ session_to_run = "left";
 hemo_measure = 'cbsi';
 
 % Load the NIRx probe used
-probe_folder = "data/nirx_probe_" + session_to_run;
+probe_folder = "data_public/nirx_probe_" + session_to_run;
 nirx_probe = nirs.io.loadNIRxProbe(probe_folder,true);
 
 % Load BIDS
@@ -46,12 +46,12 @@ raw_data_test.probe.draw;
 
 %% Add age to demographics
 
-age_data = readtable('data/basic_demographics.csv'); 
+age_data = readtable('data/basic_demographics.csv');
 demographics.age = NaN(height(demographics),1);
 
 % Add age data
 for idx=1:height(age_data)
-    subj_id_seek = string(age_data.subject(idx)); 
+    subj_id_seek = string(age_data.subject(idx));
     match_idx = strcmp(replace(demographics.bids_subject, "rs", ""), subj_id_seek);
     if sum(match_idx) < 1
         continue
@@ -66,12 +66,12 @@ raw_data = job.run(raw_data);
 
 %% Mark bad short channels in raw_data
 
-% We will go through each subject and mark the 
+% We will go through each subject and mark the
 % probe table with bad channels
 for subj_idx=1:length(raw_data)
-    
+
     % Find matching subject/session for data lookup
-    subj_id_seek = string(raw_data(subj_idx).demographics.bids_subject); 
+    subj_id_seek = string(raw_data(subj_idx).demographics.bids_subject);
     session_seek = string(raw_data(subj_idx).demographics.session);
     match_idx = strcmp(bad_shorts_data.subject, subj_id_seek) ...
         & strcmp(bad_shorts_data.session, session_seek);
@@ -79,7 +79,7 @@ for subj_idx=1:length(raw_data)
         disp("ERROR: no match")
         pause;
     end
-    
+
     % Add a column 'bad' in probe.link
     raw_data(subj_idx).probe.link.bad(:) = 0;
 
@@ -88,7 +88,7 @@ for subj_idx=1:length(raw_data)
     if (bad_shorts == "")
         continue
     end
-    
+
     % Format is e.g. S8-D11
     % go through and mark bad entries
     bad_list = split(bad_shorts,',');
@@ -99,7 +99,7 @@ for subj_idx=1:length(raw_data)
         det = str2num(erase(src_det(2), "D"));
         link = raw_data(subj_idx).probe.link;
         link_idx = (link.source == src) & (link.detector == det);
-        
+
         raw_data(subj_idx).probe.link.bad(link_idx) = 1;
         fprintf("Marked src-det %d-%d for subj %s session %s as bad\n", src, det, subj_id_seek, session_seek);
     end
@@ -133,7 +133,7 @@ for subj_idx=1:length(raw_data)
     job = nirs.modules.LabelShortSeperation();
     job.max_distance = 8;
     subject_raw_data = job.run(subject_raw_data);
-    
+
     % Some sources will connect to adjacent short-distance detectors which will
     % look like a long channel but actually is not. Mark these also.
     short_separation_idx = (subject_raw_data.probe.link.detector >= 16);
@@ -143,18 +143,18 @@ for subj_idx=1:length(raw_data)
     j=nirs.modules.OpticalDensity;
     j=nirs.modules.BeerLambertLaw(j);
     hb = j.run(subject_raw_data);
-    
+
     % Get combined measure
     job = nirs.modules.CalculateCBSI();
     hb = job.run(hb);
-    
+
     % Only look at specified measure.
     job=nirs.modules.KeepTypes;
     job.types={hemo_measure};
     hb=job.run(hb);
 
     % Now make sure bad entries are marked in hb data
-    % Get the link table with  bad short channels marked and filter for one 
+    % Get the link table with  bad short channels marked and filter for one
     % type, copy over to hb probe (table lengths should always match with just
     % one type)
     link_table = subject_raw_data.probe.link(subject_raw_data.probe.link.type == 850,:);
@@ -165,7 +165,7 @@ for subj_idx=1:length(raw_data)
     % Run individual analysis
     fprintf("Getting ConnStats for for subj %s session %s measure %s\n", subject_id, session, hemo_measure);
     [ConnStats, Graph] = get_connectivity_stats(hb, hemo_measure);
-    
+
     % The actual matrices from the analysis
     pearson_matrix = ConnStats.R;
     adjacency_matrix = Graph.adjacency;
@@ -198,7 +198,7 @@ for subj_idx=1:length(raw_data)
         adjacency_matrix(:,bad_idx) = [];
         link(bad_idx,:) = [];
     end
-    
+
     % Write the final matrices to file
     filebase = matrix_folder + "/" + string(subj_idx) + "_" + subject_id + "_" + session + "_" + hemo_measure;
     writematrix(pearson_matrix, filebase + "_R.xlsx")
@@ -222,12 +222,12 @@ Graph = ConnStats.graph(graph_label,'p<0.005');
 % ConnStats.draw('R',[-1 1],'p<0.05');
 % fname = 'ConnStats_' + subject_name + '.png';
 % %saveas(gcf,fname)
-% 
+%
 % figure('Position', get(0, 'Screensize'));
 % Graph.pagerank.draw;
 % fname = 'Graph_' + subject_name + '.png';
 % %saveas(gcf,fname)
-% 
+%
 % figure('Position', get(0, 'Screensize'));
 % heatmap(ConnStats.R, 'Colormap', turbo);
 % fname = 'R_heatmap_' + subject_name + '.png';
