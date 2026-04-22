@@ -325,10 +325,10 @@ coords = [
     (-39, -54, 46), # result
     (46, -64, 26),  # from meta analysis
     (48, 17, -13),  # study, STG
-    (-63, -25, 38),  # analysis, SMG
+    (-63, -25, 38),  # study, SMG
 ]
 
-node_values = [1, 10, 8, 8]  # same value → same color
+node_values = [1, 10, 8, 8]  # color on different sides of spectrum
 
 plotting.plot_markers(
     node_values,
