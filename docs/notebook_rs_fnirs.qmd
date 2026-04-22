@@ -73,6 +73,13 @@ Montage used for the resting-state fNIRS measurement, showing optode configurati
 
 Additional short channel filtering via visual inspection of power spectrum, channel was discarded if channel lacked a clear heart-rate peak around 1 Hz.
 
+::: {#fig-montage}
+
+![](../results_figures/example_short_ch_check.png){#fig-montage-left-right}
+
+Example of filtering via power spectrum inspection, where the S9-D20 short channel lacks a clear peak around 1 Hz.
+:::
+
 ::: {.callout-note appearance="simple" collapse=true}
 
 ## Expand for full table
@@ -85,8 +92,8 @@ bad_shorts <- read.csv(bad_short_file)
 
 # Drop subject ID, just keep index for later verification if re-run
 bad_shorts <- bad_shorts |>
-  mutate(subject_index = row_number()) |>
-  select(subject_index, session, bad_shorts)
+  mutate(row_number = row_number()) |>
+  select(row_number, session, bad_shorts)
 
 # Keep only non-empty
 bad_shorts_clean <- bad_shorts |>
@@ -306,6 +313,36 @@ projected_regions = atlas.find_regions(projected_coords, plot=True)
 
 ```
 
+### Comparison against pre-registration
+
+```{python}
+#| warning: false
+
+from nilearn import plotting
+from matplotlib.pyplot import cm
+
+coords = [
+    (-39, -54, 46), # result
+    (46, -64, 26),  # from meta analysis
+    (48, 17, -13),  # study, STG
+    (-63, -25, 38),  # analysis, SMG
+]
+
+node_values = [1, 10, 8, 8]  # same value → same color
+
+plotting.plot_markers(
+    node_values,
+    coords,
+    node_size=150,
+    title="Permutation test vs H2",
+    node_cmap=cm.PRGn,
+)
+
+plotting.show()
+
+```
+
+
 ## Correlation plots for Parkinson group
 
 Correlation plots for channel SRC10-DET9 in the left hemisphere, which showest the largest difference in eigenvector centrality between the groups, are shown in Figure 4. There were no correlations between eigenvector centrality values and any tested correlate.
@@ -506,4 +543,3 @@ projected_regions = atlas.find_regions(projected_coords, plot=True)
 
 
 ```
-# References
