@@ -42,9 +42,13 @@ library(gt)
 
 ```
 
-# Temporary notes
+# Introduction
 
-Github repository: <https://github.com/alkvi/fnirs_resting_state_pd>
+This notebook is intended to store results and code for a pre-registered resting-state fNIRS study comparing healthy and Parkinson's disease.
+
+Pre-registration (created Mar 4, 2024, 11:52 AM): <https://osf.io/wtsy7/overview?view_only=a8b2c4e92aa440cc87c9448d2e03bd04>
+
+This document is built from the Github repository: <https://github.com/alkvi/fnirs_resting_state_pd>
 
 fNIRS analysis to get correlation matrices is in [subject_correlation.m](https://github.com/alkvi/fnirs_resting_state_pd/blob/main/subject_correlation.m).
 
@@ -228,9 +232,7 @@ summary(tab1, title = "Table 1 - Demographics")
 
 ## Eigenvector centrality
 
-The largest eigenvector centrality values were found in the temporal and parietal regions (Figure 2). Values were similar for the left and right hemispheres/sessions and ranged from approximately 0.05 to 0.23 (supplementary table 1 and 2).
-
-Differences in eigenvector centrality values between the groups (Figure 3, supplementary table 1 and 2) revealed a single channel with a significantly lower value in the Parkinson group compared to the control group (SRC10-DET9, HC 0.153, PD 0.119, difference −0.034, p .034). The center of this channel was according to AtlasViewer simulations located at MNI coordinates (-39	-54	46). However, the channel did not survive FDR-adjustment.
+First, the eigenvector centrality values for each group:
 
 ::: {#fig-ec-groups layout-nrow=2 layout-ncol=2}
 
@@ -245,6 +247,8 @@ Differences in eigenvector centrality values between the groups (Figure 3, suppl
 Eigenvector centrality values in each group plotted on BRAPH template human_ICBM152. Size and color of circles indicate eigenvector centrality value.
 :::
 
+Then, differences in eigenvector centrality values:
+
 ::: {#fig-ec-diff layout-ncol=2}
 
 ![Difference Parkinson and controls left](../results_figures/braph_left_diff_marked.png){#fig-hc-left}
@@ -254,7 +258,7 @@ Eigenvector centrality values in each group plotted on BRAPH template human_ICBM
 Differences in eigenvector centrality values plotted on BRAPH template human_ICBM152. Size and color of circles indicate difference eigenvector centrality value. Blue indicates Parkinson < Control. Red indicates Parkinson > Control. Significant difference from permutation test (p < .05) marked in green.
 :::
 
-### Atlas location
+### Table
 
 ```{r}
 
@@ -265,12 +269,32 @@ braph_left_significant = braph_left_group_data |>
 braph_left_significant |>
   gt() |>
   tab_header(
-    title = "Permutation test results (p < 0.05)"
+    title = "Permutation test results left (p < 0.05)"
   ) |>
   fmt_number(
     columns = p2,
     decimals = 4
   )
+
+# Find significant BRAPH results
+braph_right_significant = braph_right_group_data |>
+  filter(p2 < 0.05)
+
+braph_right_significant |>
+  gt() |>
+  tab_header(
+    title = "Permutation test results right (p < 0.05)"
+  ) |>
+  fmt_number(
+    columns = p2,
+    decimals = 4
+  )
+
+```
+
+### Atlas location
+
+```{r}
 
 # Find matching coordinate
 atlas_file <- "../data_public/atlasviewer_left.xlsx"
@@ -292,7 +316,6 @@ matched_atlas_rows |>
   tab_header(
     title = "AtlasViewer rows matching BRAPH left-group channels"
   )
-
 
 ```
 
@@ -345,7 +368,7 @@ plotting.show()
 
 ## Correlation plots for Parkinson group
 
-Correlation plots for channel SRC10-DET9 in the left hemisphere, which showest the largest difference in eigenvector centrality between the groups, are shown in Figure 4. There were no correlations between eigenvector centrality values and any tested correlate.
+Correlation plots (correlates from hypothesis H3) for channel SRC10-DET9 in the left hemisphere, which shows the largest difference in eigenvector centrality between the groups:
 
 ```{r}
 #| warning: false
@@ -408,11 +431,7 @@ plot_grid(plotlist=list(plot1, plot2, plot3, plot4), ncol=2, nrow=2)
 
 ## Exploratory analysis - additional correlations
 
-Additional exploration of correlation between eigenvector centrality and balance ability (Mini-BESTest score), number of falls within the last 12 months and level of activity (Frändin-Grimby score) did not reveal any significant correlation (Figure 5).
-
-Difference in eigenvector centrality values were tested between fallers and non-fallers (Figure 6) and did not reveal any significant difference.
-
-NOTE: have not calculated for number of falls yet, will add
+Additional exploration of correlation between eigenvector centrality and exploratory correlates (balance ability, number of falls within the last 12 months, level of activity):
 
 ```{r}
 #| warning: false
@@ -444,6 +463,8 @@ plot_grid(plotlist=list(plot1, plot2), ncol=1, nrow=2)
 
 ```
 
+Difference in eigenvector centrality between fallers and non-fallers:
+
 ```{r}
 #| warning: false
 #| fig-cap: "Figure 6: difference in eigenvector centrality between fallers and non-fallers within the last 12 months"
@@ -471,6 +492,12 @@ plot1
 ```
 
 ## Exploratory analysis - other graph measures
+
+Did any other BRAPH2.0 measure reveal any difference and survives FDR correction?
+
+It seems Core-Periphery in the prefrontal cortex on the left side was different.
+
+### Table
 
 ```{r}
 
@@ -531,6 +558,18 @@ matched_atlas_rows |>
 
 ```
 
+### Visualization
+
+::: {#fig-ec-groups layout-nrow=1 layout-ncol=2}
+
+![Difference Parkinson and controls left](../results_figures/braph_left_core_periphery.jpg){#fig-hc-left-core}
+
+![Difference Parkinson and controls right](../results_figures/braph_right_core_periphery.jpg){#fig-hc-right-core}
+
+:::
+
+### Atlas location
+
 ```{python}
 
 # MNI from AV
@@ -540,6 +579,5 @@ coord = np.array([[-21, 52, 1],])
 atlas = AtlasBrowser("HCPEx")
 projected_coords = atlas.project_to_nearest(coord)
 projected_regions = atlas.find_regions(projected_coords, plot=True)
-
 
 ```
