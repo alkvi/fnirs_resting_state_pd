@@ -7,8 +7,8 @@ format:
     code-summary: "Show the code"
     embed-resources: true
     toc: true
-    toc-depth: 2
-    toc-expand: 2
+    toc-depth: 3
+    toc-expand: 3
     theme: flatly
     output-file: index.html
 
@@ -215,7 +215,9 @@ labels(all_subject_data)  <- c(
   height = "Height, cm",
   frandin_grimby = "Frändin-Grimby",
   ramlat_12_man = "Falls in last 12 months, yes",
-  mb_total = "Mini-BESTest score")
+  mb_total = "Mini-BESTest score",
+  updrs_3_total = "MDS-UPDRS III motor score",
+  led_total = "LEDD")
 
 # Properties for all tables
 mycontrols  <- tableby.control(numeric.test="kwt", cat.test="chisq",  cat.simplify = TRUE, cat.stats="countpct",
@@ -261,6 +263,12 @@ Differences in eigenvector centrality values plotted on BRAPH template human_ICB
 ### Table
 
 ```{r}
+
+# FDR corr
+braph_left_group_data <- braph_left_group_data %>%
+  mutate(p2_fdr = p.adjust(p2, method = "fdr"))
+braph_right_group_data <- braph_right_group_data %>%
+  mutate(p2_fdr = p.adjust(p2, method = "fdr"))
 
 # Find significant BRAPH results
 braph_left_significant = braph_left_group_data |>
@@ -343,6 +351,7 @@ projected_regions = atlas.find_regions(projected_coords, plot=True)
 
 from nilearn import plotting
 from matplotlib.pyplot import cm
+import matplotlib.patheffects as pe
 
 coords = [
     (-39, -54, 46), # result
@@ -353,13 +362,38 @@ coords = [
 
 node_values = [1, 10, 8, 8]  # color on different sides of spectrum
 
-plotting.plot_markers(
+display = plotting.plot_markers(
     node_values,
     coords,
     node_size=150,
     title="Permutation test vs H2",
     node_cmap=cm.PRGn,
 )
+
+# Small hack for adding labels
+labels = ["S10-D9", "H2.2", "H2.1", "H2.1"]
+for ax in display.axes.values():
+    for coll in ax.ax.collections:
+        offsets = coll.get_offsets()
+
+        if len(offsets) == len(labels):
+            for (x, y), label in zip(offsets, labels):
+                ax.ax.annotate(
+                    label,
+                    (x, y),
+                    xytext=(-20, 8),
+                    textcoords='offset points',
+                    color="black",
+                    fontsize=9,
+                    fontweight="bold",
+                    ha="left",
+                    va="bottom",
+                    zorder=10,
+                    path_effects=[
+                      pe.withStroke(linewidth=2.5, foreground="white")
+                    ]
+
+                )
 
 plotting.show()
 
