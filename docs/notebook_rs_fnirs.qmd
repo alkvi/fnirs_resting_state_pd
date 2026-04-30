@@ -462,6 +462,20 @@ plot_grid(plotlist=list(plot1, plot2, plot3, plot4), ncol=2, nrow=2)
 
 ```
 
+```{r}
+library(effsize)
+
+# HC = subjects starting with FNP1
+hc <- braph_long$value[grepl("^FNP1", braph_long$subject)]
+
+# PD = subjects starting with FNP2
+pd <- braph_long$value[grepl("^FNP2", braph_long$subject)]
+
+paste("diff")
+mean_hc - mean_pd
+cohen.d(hc, pd, hedges.correction = TRUE)
+
+```
 
 ## Exploratory analysis - additional correlations
 
