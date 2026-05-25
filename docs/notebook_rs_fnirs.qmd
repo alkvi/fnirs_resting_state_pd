@@ -39,6 +39,7 @@ library(cowplot)
 library(arsenal)
 library(gt)
 
+library(effsize)
 
 ```
 
@@ -143,7 +144,8 @@ braph_right_group_data <- read.csv(braph_right_group)
 braph_right_subject_data <- read.csv(braph_right_subject)
 
 redcap_data <- read.csv(redcap_file)
-redcap_data <- redcap_data[c("id_nummer", "moca_sum", "moca_sum_adjusted", "mb_total", "led_total", "frandin_grimby", "ramlat_12_man", "antal_ggr_ramlat_12_man")]
+redcap_data <- redcap_data[c("id_nummer", "moca_sum", "moca_sum_adjusted", "mb_total", "led_total", 
+                             "frandin_grimby", "ramlat_12_man", "antal_ggr_ramlat_12_man", "laterality_quotient")]
 redcap_data['ramlat_12_man'][redcap_data['ramlat_12_man'] == 0] <- 'No'
 redcap_data['ramlat_12_man'][redcap_data['ramlat_12_man'] == 1] <- 'Yes'
 redcap_data$ramlat_12_man <- factor(redcap_data$ramlat_12_man, levels=c('No', 'Yes'))
@@ -217,7 +219,8 @@ labels(all_subject_data)  <- c(
   ramlat_12_man = "Falls in last 12 months, yes",
   mb_total = "Mini-BESTest score",
   updrs_3_total = "MDS-UPDRS III motor score",
-  led_total = "LEDD")
+  led_total = "LEDD",
+  laterality_quotient = "Handedness laterality quotient")
 
 # Properties for all tables
 mycontrols  <- tableby.control(numeric.test="kwt", cat.test="chisq",  cat.simplify = TRUE, cat.stats="countpct",
@@ -226,12 +229,117 @@ mycontrols  <- tableby.control(numeric.test="kwt", cat.test="chisq",  cat.simpli
 
 # Tables
 tab1 <- tableby(group ~ sex + age + weight + height +
-                mb_total + updrs_3_total + led_total, data=all_subject_data, control=mycontrols)
+                mb_total + laterality_quotient + updrs_3_total + led_total, data=all_subject_data, control=mycontrols)
 
 summary(tab1, title = "Table 1 - Demographics")
 
 ```
 
+Note: for the EHI, right-handendness is +40 or more, left -40 or less (based on original article https://doi.org/10.1016/0028-3932(71)90067-4)
+
+Use the MDS-UPDRS III to evaluate if one side was more affected than the other.
+
+Calculate scores for items evaluated on each side, and sum them.
+If there is a two-point difference, assign a side dominance, as in:
+
+- https://doi.org/10.1080/13803395.2012.751966
+
+- https://doi.org/10.3389/fneur.2021.711045
+
+```{r, results='asis'}
+
+updrs_data <- read.csv(updrs_file)
+
+# MDS-UPDRS III asymmetry score
+# Bilateral items included in total asymmetry
+right_cols <- c(
+  "mdsupdrs3_rig_rue",
+  "mdsupdrs3_rig_rle",
+  "mdsupdrs3_fingtaps_r",
+  "mdsupdrs3_grasp_r",
+  "mdsupdrs3_alt_r",
+  "mdsupdrs3_toetap_r",
+  "mdsupdrs3_legagi_r",
+  "mdsupdrs3_tremor_k_r",
+  "mdsupdrs3_tremor_p_r",
+  "mdsupdrs3_tremor_r_rue",
+  "mdsupdrs3_tremor_r_rle"
+)
+
+left_cols <- c(
+  "mdsupdrs3_rig_lue",
+  "mdsupdrs3_rig_lle",
+  "mdsupdrs3_fingtaps_l",
+  "mdsupdrs3_grasp_l",
+  "mdsupdrs3_alt_l",
+  "mdsupdrs3_toetap_l",
+  "mdsupdrs3_legagi_l",
+  "mdsupdrs3_tremor_k_l",
+  "mdsupdrs3_tremor_p_l",
+  "mdsupdrs3_tremor_r_lue",
+  "mdsupdrs3_tremor_r_lle"
+)
+
+# Scores for each side
+updrs_data$right_total <- rowSums(
+  updrs_data[, right_cols],
+  na.rm = TRUE
+)
+updrs_data$left_total <- rowSums(
+  updrs_data[, left_cols],
+  na.rm = TRUE
+)
+
+# Total asymmetry index
+updrs_data$asymmetry_total <- with(
+  updrs_data,
+  (right_total - left_total) /
+    (right_total + left_total)
+)
+
+# avoid NaN when both sides are 0
+updrs_data$asymmetry_total[
+  is.nan(updrs_data$asymmetry_total)
+] <- NA
+
+# Assign side predominance based on 2-point cutoff
+updrs_data$asymmetry_2pt <- with(
+  updrs_data,
+  case_when(
+    abs(right_total - left_total) < 2 ~ "No asymmetry",
+    right_total - left_total >= 2 ~ "Right-predominant",
+    left_total - right_total >= 2 ~ "Left-predominant",
+    TRUE ~ NA_character_
+  )
+)
+
+# Make the subject names the same format
+names(updrs_data)[names(updrs_data) == "id_nummer"] <- "subject"
+updrs_data <- updrs_data %>%
+  mutate(subject = gsub("_rs", "", subject))
+updrs_data <- assign_group(updrs_data)
+
+# Set asymmetry variables to NA for controls
+updrs_data <- updrs_data %>%
+  mutate(
+    right_total = ifelse(group == "Control", NA, right_total),
+    left_total = ifelse(group == "Control", NA, left_total),
+    asymmetry_total = ifelse(group == "Control", NA, asymmetry_total),
+    asymmetry_2pt = ifelse(group == "Control", NA, asymmetry_2pt)
+  )
+
+labels(updrs_data)  <- c(
+  right_total = "Right side sub-items",
+  left_total = "Left side sub-items",
+  asymmetry_total = "Symptom asymmetry",
+  asymmetry_2pt = "Motor symptom asymmetry (≥2-point difference)"
+)
+
+# Tables
+lat_table <- tableby(group ~ right_total + left_total + asymmetry_total + asymmetry_2pt, data=updrs_data, control=mycontrols)
+summary(lat_table, title = "Table - Affected side")
+
+```
 ## Eigenvector centrality
 
 First, the eigenvector centrality values for each group:
@@ -297,6 +405,43 @@ braph_right_significant |>
     columns = p2,
     decimals = 4
   )
+
+# Filter braph_left_subject_data for ch == "SRC10-DET9"
+filtered_braph <- braph_left_subject_data %>% filter(ch == "SRC10-DET9")
+
+# Reshape braph_left_subject_data to long format for effsize and merging 
+# with subject covariates in correlation analyses
+braph_long_src_10_det_9 <- filtered_braph %>%
+  pivot_longer(cols = starts_with("FNP"), names_to = "subject", values_to = "value")
+braph_long_src_10_det_9 <- braph_long_src_10_det_9 %>%
+  mutate(subject = gsub("rs", "", subject))
+
+# HC = subjects starting with FNP1
+hc <- braph_long_src_10_det_9$value[grepl("^FNP1", braph_long_src_10_det_9$subject)]
+
+# PD = subjects starting with FNP2
+pd <- braph_long_src_10_det_9$value[grepl("^FNP2", braph_long_src_10_det_9$subject)]
+
+# Get stats and print in a nice table
+mean_hc <- mean(hc, na.rm = TRUE)
+mean_pd <- mean(pd, na.rm = TRUE)
+diff_val <- mean_hc - mean_pd
+d_res <- cohen.d(hc, pd, hedges.correction = TRUE)
+
+hedges_g <- d_res$estimate
+ci_low   <- d_res$conf.int[1]
+ci_high  <- d_res$conf.int[2]
+
+tibble(
+  "Mean (HC)" = mean_hc,
+  "Mean (PD)" = mean_pd,
+  "Difference" = diff_val,
+  "Hedges' g" = sprintf("%.3f [%.3f, %.3f]", hedges_g, ci_low, ci_high)
+) %>%
+  gt() %>%
+  fmt_number(columns = c(`Mean (HC)`, `Mean (PD)`, `Difference`), decimals = 3) %>%
+  tab_header(title = "Effect size")
+
 
 ```
 
@@ -408,17 +553,8 @@ Correlation plots (correlates from hypothesis H3) for channel SRC10-DET9 in the 
 #| warning: false
 #| fig-cap: "Figure 4: correlation between eigenvector centrality and disease severity (MDS-UPDRS motor score), levodopa equivalent daily dose (LEDD), disease duration and MoCA score for channel SRC10-DET9 in the Parkinson group"
 
-# Filter braph_left_subject_data for ch == "SRC10-DET9"
-filtered_braph <- braph_left_subject_data %>% filter(ch == "SRC10-DET9")
-
-# Reshape braph_left_subject_data to long format for merging
-braph_long <- filtered_braph %>%
-  pivot_longer(cols = starts_with("FNP"), names_to = "subject", values_to = "value")
-braph_long <- braph_long %>%
-  mutate(subject = gsub("rs", "", subject))
-
 # Merge with all_subject_data
-merged_data <- braph_long %>%
+merged_data <- braph_long_src_10_det_9 %>%
   inner_join(all_subject_data, by = c("subject" = "subject"))
 merged_data <- assign_group(merged_data)
 
@@ -459,21 +595,6 @@ plot4 <- ggplot(pd_data, aes(x = moca_sum_adjusted, y = value)) +
 
 plot_grid(plotlist=list(plot1, plot2, plot3, plot4), ncol=2, nrow=2)
 
-
-```
-
-```{r}
-library(effsize)
-
-# HC = subjects starting with FNP1
-hc <- braph_long$value[grepl("^FNP1", braph_long$subject)]
-
-# PD = subjects starting with FNP2
-pd <- braph_long$value[grepl("^FNP2", braph_long$subject)]
-
-paste("diff")
-mean_hc - mean_pd
-cohen.d(hc, pd, hedges.correction = TRUE)
 
 ```
 
