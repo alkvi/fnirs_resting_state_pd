@@ -1,5 +1,5 @@
 ---
-title: Resting-State fNIRS Investigation of Intrahemispheric Functional Connectivity in Parkinson's Disease
+title: manuscript
 titlepage: false
 author: ""
 date: ""
@@ -67,12 +67,26 @@ acronyms:
   ALE:
     short: ALE
     long: activation likelihood estimation
+  SCI:
+    short: SCI
+    long: scalp coupling index
+  DPF:
+    short: DPF
+    long: differential path-length factor
 
 ---
 
 # Abstract
 
-To add.
+**Background**: Altered resting-state functional connectivity (rsFC) has been reported in Parkinson’s disease (PD), including changes in eigenvector centrality within temporoparietal regions. However, findings across studies are heterogeneous, and replication remains limited.
+
+**Objective**: To replicate previously reported differences in eigenvector centrality between healthy controls and individuals with PD (+PD), and to examine associations with behavioral measures using resting-state fNIRS.
+
+**Methods**: Fifty-seven participants underwent resting-state fNIRS. Whole-hemisphere network analyses were conducted to assess group differences in eigenvector centrality and correlations with behavioral measures. Pre-registered hypotheses focused on inferior parietal (IPL), supramarginal (SMG), and superior temporal (STG) regions. Multiple comparisons were controlled using false discovery rate (FDR) correction.
+
+**Results**: The largest difference in eigenvector centrality was observed in the IPL, but in the opposite hemisphere than hypothesized and not significant after FDR correction. No hypothesized correlations were observed. The estimated effect size was moderate (Hedges’ g = 0.56, 95% CI [0.02, 1.10]), but with substantial uncertainty. Exploratory analyses indicated potential differences in core–periphery structure in the prefrontal cortex in the PD group. Several methodological factors likely contributed to discrepancies, including limited sample size, half-head coverage, lack of anatomical co-registration, and modality differences relative to prior fMRI studies.
+
+**Conclusions**: Pre-registered findings could not be replicated. Results highlight substantial uncertainty in whole-brain network metrics derived from fNIRS and underscore the need for larger sample sizes, improved measurement precision, and full-head coverage. Future studies may benefit from more targeted, hypothesis-driven approaches such as seed-based analyses, which demonstrate greater reliability across modalities.
 
 # Introduction
 
@@ -82,7 +96,7 @@ For some neurodegenerative diseases, these metrics have shown some promise as a 
 
 While +fMRI remains the most established method for studying resting-state networks, there has been increased investigation into the possibility of studying +rsFC using +fNIRS [@albrecht2025; @wang2024; @yeung2020], an optical neuroimaging method based on detecting changes on +HbO and +HbR concentrations in the cortex [@jobsis1977]. Progress has been made in characterizing the test-retest reproducibility of +rsFC metrics measured with +fNIRS [@zhang2011; @zhang2011a], identifying optimal processing methods [@novi2023; @lanka2022; @paranawithana2022; @blanco2018; @santosa2017], and characterizing resting-state networks [@abdalmalak2022; @butters2026]. Some studies have compared +rsFC metrics and networks identified with +fNIRS to those measured with +fMRI [@kotsogiannis2026; @uchitel2022; @duan2012], with two studies finding a large degree of overlap between network topological parameters and network maps [@uchitel2022; @duan2012], and another finding less agreement for finer-scale nodal parameters but better agreement for large-scale parameters such as global connectivity patterns and major functional subnetworks [@kotsogiannis2026].
 
-However, these comparisons with +fMRI literature have focused on healthy participants, and because resting-state +fNIRS studies are still very heterogeneous  [@albrecht2025], there is a lack of rigorous comparison between resting-state alterations reported in the literature for neurodegenerative disease, and +rsFC metrics in measured with +fNIRS. Thus, this pre-registered study set out to test a number of hypotheses based on the +fMRI literature on resting-state alterations in +PD, in a cohort of +PD participants measured with resting-state +fNIRS.
+However, these comparisons with +fMRI literature have focused on healthy participants, and because resting-state +fNIRS studies are still very heterogeneous  [@albrecht2025], there is a lack of rigorous comparison between resting-state alterations reported in the literature for neurodegenerative disease, and +rsFC metrics in measured with +fNIRS. Thus, this pre-registered study set out to test hypotheses based on the +fMRI literature on resting-state alterations in +PD, in a cohort of +PD participants measured with resting-state +fNIRS.
 
 # Material and methods
 
@@ -100,7 +114,7 @@ Finally, we hypothesized that eigenvector centrality in the +PD group is negativ
 
 ## Experimental procedure
 
-Data collection took place at the uMOVE core facility, Karolinska University Hospital, Solna, Stockholm. All data was collected during a single experimental session. Collected data consisted of resting-state +fNIRS data, cognitive screening data (+MoCA), and a clinical test of balance. The Parkinson group also performed the Movement Disorder Society sponsored revision of the Unified Parkinson’s Disease Rating Scale (MDS-UPDRS) to assess disease severity at the time of measurement.
+Data collection took place at the uMOVE core facility, Karolinska University Hospital, Solna, Stockholm. All data was collected during a single experimental session. Collected data consisted of resting-state +fNIRS data, cognitive screening data (+MoCA), and a clinical test of balance. The +PD group also performed the Movement Disorder Society sponsored revision of the Unified Parkinson’s Disease Rating Scale (MDS-UPDRS) to assess disease severity at the time of measurement.
 
 ## Data acquisition
 
@@ -108,13 +122,13 @@ The +fNIRS system used was a NIRSport2 (NIRx) with 16 sources and 15 detectors, 
 
 The resting-state measurements took place in a calm, dimly lit room, with participants seated in an office chair, legs placed on a leg rest to decrease movement. Eyes were closed, and participants were blindfolded as well. Ear plugs were used to shield from ambient noise. Participants were instructed not to focus on any special thought, let the mind wander, and to not fall asleep.
 
-![Montage used for the resting-state fNIRS measurement, showing optode configuration and sensitivity profiles generated in AtlasViewer for left and right hemispheres](../results_figures/rs_montage.png){#fig:rs-montage}
+![Montage used for the resting-state fNIRS measurement, showing optode configuration and sensitivity profiles generated in AtlasViewer for left and right hemispheres (left is left)](../results_figures/rs_montage.png){#fig:rs-montage}
 
 ## Data preprocessing
 
-Preprocessing of resting-state +fNIRS data was performed with the MATLAB NIRS AnalyzIR toolbox (forked version; see Data availability for details) [@santosa2018]. Raw data was trimmed at the start and end of the measurement with 10 seconds on each side to avoid noise from position adjustments and similar. Raw data was then converted into optical density and into ΔHbO2 and ΔHHb using the modified Beer-Lambert law [@delpy1988]. The differential path-length factor (DPF) was set to depend on age [@scholkmann2013].
+Preprocessing of resting-state +fNIRS data was performed with the MATLAB NIRS AnalyzIR toolbox (forked version; see Data availability for details) [@santosa2018]. Raw data was trimmed at the start and end of the measurement with 10 seconds on each side to avoid noise from position adjustments and similar. Raw data was then converted into optical density and into ΔHbO and ΔHbR using the modified Beer-Lambert law [@delpy1988]. The +DPF was set to depend on age [@scholkmann2013].
 
-Data quality was assessed using MNE-NIRS (v0.7.1) [@gramfort2013; @luke2021]. The scalp coupling index (SCI) was calculated on a per-channel basis and the percentage of bad channels (SCI < 0.7) among participants was plotted on the montage (supplementary). The worst quality channels were discarded from further analysis, 6 in total, leaving 42 long channels remaining. Moreover, because noise in short-channels may transfer noise into the signal of interest during short-channel regression, quality of the short-channel data was further assessed using their power spectrums [@novi2023] and channels were discarded if they lacked a clear heart-rate peak around 1 Hz ([Figure @fig:short-ch-example]) (details of discarded channels in supplementary material).
+Data quality was assessed using MNE-NIRS (v0.7.1) [@gramfort2013; @luke2021]. The +SCI was calculated on a per-channel basis and the percentage of bad channels (+SCI < 0.7) among participants was plotted on the montage (supplementary). The worst quality channels were discarded from further analysis, 6 in total, leaving 42 long channels remaining. Moreover, because noise in short-channels may transfer noise into the signal of interest during short-channel regression, quality of the short-channel data was further assessed using their power spectrums [@novi2023] and channels were discarded if they lacked a clear heart-rate peak around 1 Hz ([Figure @fig:short-ch-example]) (details of discarded channels in supplementary material).
 
 ![Example of filtering via power spectrum inspection, where the S9-D20 short channel lacks a clear peak around 1 Hz and is therefore discarded.](../results_figures/example_short_ch_check.png){#fig:short-ch-example}
 
@@ -124,11 +138,13 @@ All-to-all channel correlation matrices were calculated from ΔHbO2 values using
 
 To obtain graph metrics, in particular eigenvector centrality, correlation matrices were fed into the BRAPH2.0 (v2.0.0.b2) [@mijalkov2017; @chang2025] pipeline Connectivity Comparison WU (weighted undirected). This pipeline compares two groups of subjects by constructing weighted undirected graphs from input connectivity data, in this case the correlation matrices. Brain atlases for the BRAPH2.0 pipeline were obtained by exporting the projected MNI coordinates of channels in the used montages via AtlasViewer (v2.44.0) [@aasted2015].
 
-Differences in eigenvector centrality values were compared by non-parametric permutation tests with 10000 permutations, considered significant for a two-tailed t-test at p < .05. To account for multiple comparisons in the network results, false discovery rate (FDR) correction was applied, and the network was tested at q < .05.
+Differences in eigenvector centrality values were compared by non-parametric permutation tests with 10000 permutations, considered significant for a two-tailed t-test at p < .05. To account for multiple comparisons in the network results, false discovery rate (FDR) correction was applied, and the network was tested at q < .05. 
 
-To test correlation hypotheses in H3, correlation between eigenvector centrality and disease severity (MDS-UPDRS motor score), +LEDD, disease duration and +MoCA score were calculated. Correlations were calculated for those channels showing the largest differences in eigenvector centrality values between the groups.
+To test correlation hypotheses in H3, correlation between eigenvector centrality and disease severity (MDS-UPDRS motor score), medication (+LEDD), disease duration and global cognition (+MoCA score) were calculated. Correlations were calculated for those channels showing the largest differences in eigenvector centrality values between the groups.
 
 Finally, as an exploratory analysis in addition to the eigenvector centrality comparison, the analysis pipeline was run for all other available global and nodal BRAPH graph metrics and compared between groups. 
+
+Statistical analysis of BRAPH2.0 output was performed in R [@rcoreteam2022] (v4.5.2). Effect sizes were calculated using the *effectsize* package [@ben-shachar2020], with Hedges’ g for continuous variables and Cohen’s h for proportions. Visualizations of nodal effect locations were performed in Python (v3.14.5) using the *mni-to-atlas* library on the extended Human Connectome Project multimodal parcellation atlas (HCPEx) [@huang2022b].
 
 # Results
 
@@ -149,39 +165,41 @@ In total, 57 participants took part in the study (Table 1).
 
 ## Eigenvector centrality
 
-Differences in eigenvector centrality values between the groups ([Figure @fig:eigenvector-diff]a, supplementary table 1 and 2) revealed a single channel with a significantly lower value in the Parkinson group compared to the control group (SRC10-DET9, HC 0.153, PD 0.119, difference −0.034, p .034). Effect size was moderate but highly uncertain (Hedges' g = 0.56, 95% CI [0.02, 1.10]). The center of this channel was according to AtlasViewer simulations located at MNI coordinates (-39 -54 46) ([Figure @fig:eigenvector-diff]b). This location corresponded to Area_PFm_Complex_L in the HCPEx atlas, which is located in the +IPL. However, compared to hypothesized difference in the right +IPL (H2.2), it was located in the left +IPL ([Figure @fig:location-comparison]). Furthermore, the channel did not survive FDR-adjustment.
+Differences in eigenvector centrality values between the groups ([Figure @fig:eigenvector-diff]a, supplementary table 1 and 2) revealed a single channel with a significantly lower value in the +PD group compared to the control group (SRC10-DET9, HC 0.153, PD 0.119, difference −0.034, p .034). Effect size was moderate but highly uncertain (Hedges' g = 0.56, 95% CI [0.03, 1.08]). The center of this channel was according to AtlasViewer simulations located at MNI coordinates (-39 -54 46) ([Figure @fig:eigenvector-diff]b). This location corresponded to Area_PFm_Complex_L in the HCPEx atlas, located in the +IPL. However, compared to hypothesized difference in the right +IPL (H2.2), it was located in the left +IPL ([Figure @fig:location-comparison]). Furthermore, the channel did not survive FDR-adjustment.
 
 There were no identified correlations between eigenvector centrality and any of the hypothesized correlates disease severity, +LEDD, disease duration, or +MoCA ([Figure @fig:correlation]).
 
-![(A) Differences in eigenvector centrality values plotted on BRAPH template human_ICBM152. Size and color of circles indicate magnitude and direction of the differences. Blue indicates Parkinson < Control. Red indicates Parkinson > Control. Significant difference from permutation test (p < .05) marked in green. (B) Location of largest difference of eigenvector centrality between the Parkinson group and the control group, visualized on the HCPEx atlas.](../results_figures/braph_diff_combined.png){#fig:eigenvector-diff}
+![(A) Differences in eigenvector centrality values plotted on BRAPH template human_ICBM152. Size and color of circles indicate magnitude and direction of the differences. Blue indicates Parkinson's disease < Control. Red indicates Parkinson's disease > Control. Significant difference from permutation test (p < .05) marked in green. (B) Location of largest difference of eigenvector centrality between the Parkinson's disease group and the control group, visualized on the HCPEx atlas.](../results_figures/braph_diff_combined.png){#fig:eigenvector-diff}
 
 ![Comparison between location of largest difference in eigenvector centrality from permutation test (p < .05) (S10-D9) and hypothesized locations of differences in the supramarginal gyrus (SMG) and superior temporal gyrus (STG) (H2.1) and inferior parietal lobule (IPL) (H2.2).](../results_figures/h2_location_comparison.png){#fig:location-comparison}
 
-![Correlation between eigenvector centrality and disease severity (MDS-UPDRS motor score), levodopa equivalent daily dose (LEDD), disease duration and MoCA score for channel SRC10-DET9 in the Parkinson group.](../results_figures/correlation_fig.png){#fig:correlation}
+![Correlation between eigenvector centrality and disease severity (MDS-UPDRS III motor score), levodopa equivalent daily dose (LEDD), disease duration and MoCA score for channel SRC10-DET9 in the Parkinson's disease group.](../results_figures/correlation_fig.png){#fig:correlation}
 
 ## Exploratory analysis
 
-Exploratory analyses of other graph metrics revealed one channel in the left hemisphere ([Figure @fig:core-periphery-diff]a) that remained after FDR-correction with a higher core-periphery nodal value (SRC3-DET1, difference 0.19, FDR p < .02). The channel was located at MNI coordinates (-21, 52, 1) ([Figure @fig:core-periphery-diff]b). This location corresponded to Area_posterior_10p_L in the HCPEx atlas, located in the left +PFC.
+Exploratory analyses of additional graph metrics revealed one channel in the left hemisphere ([Figure @fig:core-periphery-diff]a) that remained after FDR-correction. This channel showed a higher proportion of subjects classified as belonging to the network core in the +PD group compared to the +HC group (core–periphery nodal value; SRC3-DET1, HC 0%, PD 19%, difference 19%, FDR p < .02). Effect size was large (Cohen's h = 1.73, 95% CI [0.81, 2.64]). The channel was located at MNI coordinates (-21, 52, 1) ([Figure @fig:core-periphery-diff]b). This location corresponded to Area_posterior_10p_L in the HCPEx atlas, located in the left +PFC.
 
-![(A) Differences in core-periphery values plotted on BRAPH template human_ICBM152. Size and color of circles indicate magnitude and direction of the differences. Blue indicates Parkinson < Control. Red indicates Parkinson > Control. Significant difference from permutation test (p < .05) marked in green. (B) Location of largest difference of core-periphery between the Parkinson group and the control group, visualized on the HCPEx atlas.](../results_figures/braph_core_periphery_combined.png){#fig:core-periphery-diff}
+![(A) Differences in core-periphery values plotted on BRAPH template human_ICBM152. Size and color of circles indicate magnitude and direction of the differences. Blue indicates Parkinson's disease < Control. Red indicates Parkinson's disease > Control. Significant difference from permutation test (p < .05) marked in green. (B) Location of largest difference of core-periphery between the Parkinson's disease group and the control group, visualized on the HCPEx atlas.](../results_figures/braph_core_periphery_combined.png){#fig:core-periphery-diff}
 
 # Discussion
 
-## Previous findings could not be replicated
+Summary
 
-Although the largest difference in eigenvector centrality between controls and people with +PD was located in the +IPL as hypothesized in H2.2, it was in the opposite hemisphere than expected ([Figure @fig:location-comparison]), and the result was not significant controlling for multiple comparisons at FDR p < .05. None of the hypothesized correlations were found either. ([Figure @fig:correlation]) Thus, the pre-registered hypotheses were not supported by the findings of this study.
+## Previous resting-state fMRI findings could not be replicated
 
-The hypothesized locations of lower eigenvector centrality in +PD in the +SMG and +STG in H2.1 were based on a single study specifically comparing eigenvector centrality between controls and +PD in a whole-brain +fMRI analysis [@ballarini2018], while the location in the +IPL in H2.2 was based on an +ALE meta-analysis of 28 +fMRI studies with a number of different graph metrics and analysis pipelines [@tahmasian2017]. While the convergent +ALE finding was limited to the right hemisphere in the meta-analysis, a followup resting-state functional connectivity analysis using the +ALE finding as a seed region found a symmetric network spanning both hemispheres [@tahmasian2017], including the region of largest difference found in this study ([Figure @fig:location-comparison]). Given the large experimental differences between +fMRI and +fNIRS even though both rely on the +BOLD signal, it might be expected that the convergence of more heterogeneous studies more closely aligns with this study using a different modality.
+Although the largest difference in eigenvector centrality between controls and people with +PD was located in the +IPL as hypothesized in H2.2, it was in the opposite hemisphere than expected ([Figure @fig:location-comparison]), and the result was not significant when controlling for multiple comparisons at FDR p < .05. None of the hypothesized correlations with disease severity, medication, disease duration or global cognition were found either. ([Figure @fig:correlation]) Thus, the pre-registered hypotheses were not supported by the findings of this study.
+
+The hypothesized locations of lower eigenvector centrality in +PD compared to controls in the +SMG and +STG (H2.1) were based on a single study. This study specifically compared eigenvector centrality between controls and +PD using a whole-brain +fMRI analysis [@ballarini2018]. In contrast, the location in the +IPL (H2.2) was based on an +ALE meta-analysis of 28 resting-state +fMRI studies, which used a range of graph metrics and analysis pipelines [@tahmasian2017]. While the convergent +ALE finding was limited to the right hemisphere in the meta-analysis, a follow-up resting-state functional connectivity analysis using the +ALE finding as a seed region found a symmetric network spanning both hemispheres [@tahmasian2017], including the region of largest difference found in this study ([Figure @fig:location-comparison]). Given the large experimental differences between +fMRI and +fNIRS even though both rely on the +BOLD signal, it might be expected that the convergence of more heterogeneous studies more closely aligns with this study using a different modality.
 
 ## Sources of discrepancy for replication
 
-A total of 57 participants partook in the study, and although the difference in eigenvector centrality was of moderate size (Hedges g = 0.56), it was not significant after FDR-correction. This, and the wide confidence interval of Hedges g [0.021 - 1.1] reflects a highly uncertain effect, and points towards this type of whole-brain (or half-brain) network analysis needing a far larger sample size, better signal to noise ratios, or both. This issue exists in the +fMRI literature as well, where strict correction for multiple comparisons removes many +rsFC findings when doing between-group comparisons [@arabshahi2024].
+A total of 57 participants partook in the study, and although the difference in eigenvector centrality was of moderate effect size (Hedges g = 0.56), it was not significant after FDR-correction. This, and the wide confidence interval of Hedges g [0.021 - 1.1] reflects a highly uncertain effect, and points towards this type of whole-brain (or half-brain) network analysis needing a far larger sample size, better signal to noise ratios, or both. This issue exists in the +fMRI literature as well, where strict correction for multiple comparisons removes many +rsFC findings when performing between-group comparisons [@arabshahi2024].
 
 Even when doing within-group correlations, +fMRI literature points towards roughly 80 or more participants being required in order to examine brain-behavior correlations on a robust manner in task-based analyses [@grady2020], something that likely requires even more participants when correlating +rsFC metrics. This issue of small-n designs when studying brain-behavior associations is also present in +EEG [@guern2026] studies, where small samples produce unstable associations and inconsistent effect sizes.
 
-Another clear source of discrepancy is the fact that only one hemisphere was measured at one time due to a limited amount of available optodes. Whole-brain network analyses capture both intra-hemispheric and inter-hemispheric connectivity, and homotopic connections (meaning connections between homologous inter-hemispheric regions) are usually strongly correlated [@stark2008]. While +rsFC networks are usually symmetric [@jo2012], positive connections have been found to be stronger intra-hemispherically and negative connections stronger inter-hemispherically [@gee2011]. If the findings in the meta-analysis [@tahmasian2017] used for constructing our hypotheses were due to inter-hemispheric connection disruptions rather than intra-hemispheric, our experiemental design would fail to capture these.
+Another clear source of discrepancy is the fact that only one hemisphere was measured at one time due to a limited amount of available optodes. Whole-brain network analyses capture both intra-hemispheric and inter-hemispheric connectivity, and homotopic connections (meaning connections between homologous inter-hemispheric regions) are usually strongly correlated [@stark2008]. While +rsFC networks are usually symmetric [@jo2012], positive connections have been found to be stronger intra-hemispherically and negative connections stronger inter-hemispherically [@gee2011]. If the findings in the meta-analysis [@tahmasian2017] used for constructing our hypotheses were due to inter-hemispheric connection disruptions rather than intra-hemispheric, our experimental design would fail to capture these.
 
-Furthermore, this study did not co-register optode placement with anatomical images, and so placement variation errors and head geometry variation likely contributed to a larger degree of noise in estimating +rsFC metrics, as compared to +fMRI studies.
+Furthermore, this study did not co-register optode placement with anatomical images, meaning placement variation errors and head geometry variation likely contributed to a larger degree of noise in estimating +rsFC metrics, as compared to +fMRI studies.
 
 ## Seed-based analyses might be more appropriate
 

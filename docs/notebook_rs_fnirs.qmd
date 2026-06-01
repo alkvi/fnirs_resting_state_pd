@@ -39,7 +39,7 @@ library(cowplot)
 library(arsenal)
 library(gt)
 
-library(effsize)
+library(effectsize)
 
 ```
 
@@ -237,9 +237,9 @@ summary(tab1, title = "Table 1 - Demographics")
 
 Note: for the EHI, right-handendness is +40 or more, left -40 or less (based on original article https://doi.org/10.1016/0028-3932(71)90067-4)
 
-Use the MDS-UPDRS III to evaluate if one side was more affected than the other.
+We can also use the MDS-UPDRS III to evaluate if one side was more affected than the other.
 
-Calculate scores for items evaluated on each side, and sum them.
+To do this: calculate scores for items evaluated on each side, and sum them.
 If there is a two-point difference, assign a side dominance, as in:
 
 - https://doi.org/10.1080/13803395.2012.751966
@@ -426,11 +426,11 @@ pd <- braph_long_src_10_det_9$value[grepl("^FNP2", braph_long_src_10_det_9$subje
 mean_hc <- mean(hc, na.rm = TRUE)
 mean_pd <- mean(pd, na.rm = TRUE)
 diff_val <- mean_hc - mean_pd
-d_res <- cohen.d(hc, pd, hedges.correction = TRUE)
+g_res <- hedges_g(hc, pd)
 
-hedges_g <- d_res$estimate
-ci_low   <- d_res$conf.int[1]
-ci_high  <- d_res$conf.int[2]
+hedges_g <- g_res$Hedges_g
+ci_low   <- g_res$CI_low
+ci_high  <- g_res$CI_high
 
 tibble(
   "Mean (HC)" = mean_hc,
@@ -666,6 +666,14 @@ Did any other BRAPH2.0 measure reveal any difference and survives FDR correction
 
 It seems Core-Periphery in the prefrontal cortex on the left side was different.
 
+From the source code, Core-Periphery is defined such that:
+
+> The Core-Periphery (CorePeriphery) of a node is the value of the rank corresponding to the maximum richness nodes. It returns 1 for a node belonging to the core and zero otherwise.
+
+- <https://github.com/braph-software/BRAPH-2/blob/develop/braph2/measures/CorePeriphery.m>
+
+This means that the PD group had more instances of this channel belonging to the network core compared to HC.
+
 ### Table
 
 ```{r}
@@ -674,12 +682,14 @@ braph_expl_left_global <- "../data/braph_left_exploratory_results_global.csv"
 braph_expl_left_nodal <- "../data/braph_left_exploratory_results_nodal.csv"
 braph_expl_right_global <- "../data/braph_right_exploratory_results_global.csv"
 braph_expl_right_nodal <- "../data/braph_right_exploratory_results_nodal.csv"
+braph_expl_left_subject = "../data/braph_left_exploratory_subject_results.csv"
 
 # Load the data files
 braph_expl_left_global_data <- read.csv(braph_expl_left_global)
 braph_expl_left_nodal_data <- read.csv(braph_expl_left_nodal)
 braph_expl_right_global_data <- read.csv(braph_expl_right_global)
 braph_expl_right_nodal_data <- read.csv(braph_expl_right_nodal)
+braph_expl_left_subject_data <- read.csv(braph_expl_left_subject)
 
 # FDR corr
 braph_expl_left_nodal_data <- braph_expl_left_nodal_data %>%
@@ -711,6 +721,58 @@ significant_results_right %>%
     decimals = 2
   )
 
+# Effect size 
+filtered_braph_expl <- braph_expl_left_subject_data %>%
+  filter(ch == "SRC3-DET1") %>%                      # keep desired condition
+  select(ch, ends_with("_CorePeriphery"))            # keep only relevant measures
+
+# Reshape braph_left_subject_data to long format for effsize and merging 
+# with subject covariates in correlation analyses
+braph_long_src_3_det_1 <- filtered_braph_expl %>%
+  pivot_longer(cols = starts_with("FNP"), names_to = "subject", values_to = "value")
+braph_long_src_3_det_1 <- braph_long_src_3_det_1 %>%
+  mutate(subject = gsub("rs", "", subject))
+
+# HC = subjects starting with FNP1
+hc <- braph_long_src_3_det_1$value[grepl("^FNP1", braph_long_src_3_det_1$subject)]
+
+# PD = subjects starting with FNP2
+pd <- braph_long_src_3_det_1$value[grepl("^FNP2", braph_long_src_3_det_1$subject)]
+
+# Proportions
+mean_hc <- mean(hc, na.rm = TRUE)
+mean_pd <- mean(pd, na.rm = TRUE)
+diff_val <- mean_hc - mean_pd
+
+# Contingency table
+cont_tab <- table(
+  group = c(rep("HC", length(hc)), rep("PD", length(pd))),
+  value = c(hc, pd)
+)
+
+# Cohen's h
+h_res <- cohens_h(cont_tab)
+h_val  <- h_res$Cohens_h
+ci_low <- h_res$CI_low
+ci_high <- h_res$CI_high
+
+# Counts for reporting
+hc_n1 <- sum(hc == 1, na.rm = TRUE)
+hc_total <- length(hc)
+pd_n1 <- sum(pd == 1, na.rm = TRUE)
+pd_total <- length(pd)
+
+# Create table
+tibble(
+  "HC (n, %)" = sprintf("%d/%d (%.1f%%)", hc_n1, hc_total, mean_hc * 100),
+  "PD (n, %)" = sprintf("%d/%d (%.1f%%)", pd_n1, pd_total, mean_pd * 100),
+  "Difference (HC − PD)" = diff_val,
+  "Cohen's h" = sprintf("%.2f [%.2f, %.2f]", h_val, ci_low, ci_high)
+) %>%
+  gt() %>%
+  fmt_number(columns = "Difference (HC − PD)", decimals = 3) %>%
+  tab_header(title = "Group Comparison (Binary Outcome)")
+
 # Find matching coordinate
 matched_atlas_rows <- atlasviewer_left |>
   semi_join(
@@ -723,7 +785,6 @@ matched_atlas_rows |>
   tab_header(
     title = "AtlasViewer rows matching BRAPH left-group channels"
   )
-
 
 ```
 

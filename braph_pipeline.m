@@ -15,7 +15,7 @@ pd_group = 'PD_' + side;
 
 %% Load BrainAtlas
 
-atlas_file = char(strcat('data', '/', 'braph_data', '/', atlas_file_loc));
+atlas_file = char(atlas_file_loc);
 atlas = readtable(atlas_file);
 atlas_ch = atlas.Var1;
 
