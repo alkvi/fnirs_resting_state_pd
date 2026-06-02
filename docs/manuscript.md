@@ -1,101 +1,15 @@
----
-title: manuscript
-titlepage: false
-author: ""
-date: ""
-output:
-  docx:
-    toc: false
-    output: manuscript.docx
-    metadata:
-      csl: /Users/alexander.kvist/Zotero/styles/apa.csl
-    bibliography: /Users/alexander.kvist/Zotero/zotero_library.bib
-    filter:
-      - pandoc-acro
-      - pandoc-crossref
-    citeproc: true
-    verbose: true
-acronyms:
-  PD:
-    short: PD
-    long: Parkinson's disease
-  AD:
-    short: AD
-    long: Alzheimer's disease
-  fNIRS:
-    short: fNIRS
-    long: functional near-infrared spectroscopy
-  fMRI:
-    short: fMRI
-    long: functional magnetic resonance imaging
-  EEG:
-    short: EEG
-    long: electroencephalography
-  BOLD:
-    short: BOLD
-    long: blood-oxygen level dependent response
-  rsFC:
-    short: rsFC
-    long: resting-state functional connectivity
-  IPL:
-    short: IPL
-    long: inferior parietal lobule
-  STG:
-    short: STG
-    long: superior temporal gyrus
-  SMG:
-    short: SMG
-    long: supramarginal gyrus
-  PFC:
-    short: PFC
-    long: prefrontal cortex
-  HbO:
-    short: HbO
-    long: oxygenated hemoglobin
-  HbR:
-    short: HbR
-    long: deoxygenated hemoglobin
-  MoCA:
-    short: MoCA
-    long: Montreal Cognitive Assessment
-  LEDD:
-    short: LEDD
-    long: levodopa equivalent daily dose
-  OSF:
-    short: OSF
-    long: Open Science Framework
-  ALE:
-    short: ALE
-    long: activation likelihood estimation
-  SCI:
-    short: SCI
-    long: scalp coupling index
-  DPF:
-    short: DPF
-    long: differential path-length factor
-  FPN:
-    short: FPN
-    long: frontoparietal network
-  SMN:
-    short: SMN
-    long: somatomotor network
-  EHI:
-    short: EHI
-    long: Edinburgh Handedness Inventory
-
----
 
 # Abstract
 
-**Background**: Altered resting-state functional connectivity (rsFC) has been reported in Parkinson’s disease (PD), including changes in eigenvector centrality within temporoparietal regions. While functional magnetic resonance imaging (fMRI) remains the standard for studying resting-state networks, functional near-infrared spectroscopy (fNIRS) is becoming increasingly used to study resting-state networks. However, findings across resting-state fNIRS studies are heterogeneous, and replication of resting-state fMRI results remain limited.
+**Background**: Altered resting-state functional connectivity (rsFC) has been reported in Parkinson’s disease (PD), including changes in eigenvector centrality within temporoparietal regions. While functional magnetic resonance imaging (fMRI) remains the standard for studying resting-state networks, functional near-infrared spectroscopy (fNIRS) is becoming increasingly used to study these networks. However, findings across resting-state fNIRS studies are heterogeneous, and replication of resting-state fMRI results remain limited.
 
 **Objective**: To replicate previously reported differences in eigenvector centrality in resting-state fMRI studies between healthy controls and individuals with PD, and to examine associations with clinical and functional measures using resting-state fNIRS.
 
-**Methods**: Fifty-seven participants (30 controls, 27 PD) underwent resting-state fNIRS measurements across two sessions, measuring the left and right hemispheres separately. Whole-hemisphere network analyses were conducted to assess group differences in eigenvector centrality and correlations with clinical and functional measures. Pre-registered hypotheses focused on inferior parietal (IPL), supramarginal (SMG), and superior temporal (STG) regions. Multiple comparisons were controlled using false discovery rate (FDR) correction.
+**Methods**: Fifty-seven participants (30 controls, 27 PD) underwent resting-state fNIRS measurements across two sessions, measuring left and right hemispheres separately. Pre-registered whole-hemisphere network analyses were conducted to assess group differences in eigenvector centrality and correlations with clinical and functional measures.
 
-**Results**: The largest difference in eigenvector centrality was observed in the IPL, but in the opposite hemisphere than hypothesized and not significant after FDR correction. No hypothesized correlations were observed. The estimated effect size was moderate, but with substantial uncertainty (Hedges’ g = 0.56, 95% CI [0.03 - 1.08]). Exploratory analyses indicated potential differences in core–periphery structure in the prefrontal cortex in the PD group. Several methodological factors likely contributed to discrepancies, including limited sample size, half-head coverage, and modality differences relative to prior fMRI studies.
+**Results**: The largest difference in eigenvector centrality was observed in a hypothesized region, but in the opposite hemisphere than expected and not significant after correction for multiple comparisons. No hypothesized correlations were observed. Exploratory analyses indicated potential differences in prefrontal core–periphery structure in PD. Several factors likely contributed to discrepancies, including limited sample size and intra-hemispheric coverage.
 
-**Conclusions**: Pre-registered findings could not be replicated. Results highlight substantial uncertainty in whole-brain network metrics derived from fNIRS and underscore the need for larger sample sizes, improved measurement precision, and full-head coverage. Observed prefrontal core-periphery differences in PD compared to controls might relate to frontoparietal network alterations in PD. Future studies may benefit from more targeted, hypothesis-driven approaches such as seed-based analyses, which demonstrate greater reliability across modalities.
+**Conclusions**: Previously reported eigenvector differences could not be replicated. Results highlight uncertainty in whole-brain network metrics derived from fNIRS and underscore the need for larger sample sizes. Observed prefrontal core-periphery differences might relate to frontoparietal network alterations in PD. Future studies may benefit from more targeted, hypothesis-driven approaches such as seed-based analyses, which demonstrate greater reliability across modalities.
 
 # Introduction
 
