@@ -79,6 +79,9 @@ acronyms:
   SMN:
     short: SMN
     long: somatomotor network
+  EHI:
+    short: EHI
+    long: Edinburgh Handedness Inventory
 
 ---
 
@@ -86,13 +89,13 @@ acronyms:
 
 **Background**: Altered resting-state functional connectivity (rsFC) has been reported in Parkinson’s disease (PD), including changes in eigenvector centrality within temporoparietal regions. While functional magnetic resonance imaging (fMRI) remains the standard for studying resting-state networks, functional near-infrared spectroscopy (fNIRS) is becoming increasingly used to study resting-state networks. However, findings across resting-state fNIRS studies are heterogeneous, and replication of resting-state fMRI results remain limited.
 
-**Objective**: To replicate previously reported differences in eigenvector centrality in resting-state fMRI studies between healthy controls and individuals with PD (+PD), and to examine associations with behavioral measures using resting-state fNIRS.
+**Objective**: To replicate previously reported differences in eigenvector centrality in resting-state fMRI studies between healthy controls and individuals with PD, and to examine associations with clinical and functional measures using resting-state fNIRS.
 
-**Methods**: Fifty-seven participants underwent resting-state fNIRS measurements across two sessions, measuring the left and right hemispheres separately. Whole-hemisphere network analyses were conducted to assess group differences in eigenvector centrality and correlations with behavioral measures. Pre-registered hypotheses focused on inferior parietal (IPL), supramarginal (SMG), and superior temporal (STG) regions. Multiple comparisons were controlled using false discovery rate (FDR) correction.
+**Methods**: Fifty-seven participants (30 controls, 27 PD) underwent resting-state fNIRS measurements across two sessions, measuring the left and right hemispheres separately. Whole-hemisphere network analyses were conducted to assess group differences in eigenvector centrality and correlations with clinical and functional measures. Pre-registered hypotheses focused on inferior parietal (IPL), supramarginal (SMG), and superior temporal (STG) regions. Multiple comparisons were controlled using false discovery rate (FDR) correction.
 
-**Results**: The largest difference in eigenvector centrality was observed in the IPL, but in the opposite hemisphere than hypothesized and not significant after FDR correction. No hypothesized correlations were observed. The estimated effect size was moderate (Hedges’ g = 0.56, 95% CI [0.03 - 1.08]), but with substantial uncertainty. Exploratory analyses indicated potential differences in core–periphery structure in the prefrontal cortex in the PD group. Several methodological factors likely contributed to discrepancies, including limited sample size, half-head coverage, lack of anatomical co-registration, and modality differences relative to prior fMRI studies.
+**Results**: The largest difference in eigenvector centrality was observed in the IPL, but in the opposite hemisphere than hypothesized and not significant after FDR correction. No hypothesized correlations were observed. The estimated effect size was moderate, but with substantial uncertainty (Hedges’ g = 0.56, 95% CI [0.03 - 1.08]). Exploratory analyses indicated potential differences in core–periphery structure in the prefrontal cortex in the PD group. Several methodological factors likely contributed to discrepancies, including limited sample size, half-head coverage, and modality differences relative to prior fMRI studies.
 
-**Conclusions**: Pre-registered findings could not be replicated. Results highlight substantial uncertainty in whole-brain network metrics derived from fNIRS and underscore the need for larger sample sizes, improved measurement precision, and full-head coverage. Observed prefrontal core-periphery differences in +PD compared to controls might related to frontoparietal network alterations in +PD. Future studies may benefit from more targeted, hypothesis-driven approaches such as seed-based analyses, which demonstrate greater reliability across modalities.
+**Conclusions**: Pre-registered findings could not be replicated. Results highlight substantial uncertainty in whole-brain network metrics derived from fNIRS and underscore the need for larger sample sizes, improved measurement precision, and full-head coverage. Observed prefrontal core-periphery differences in PD compared to controls might relate to frontoparietal network alterations in PD. Future studies may benefit from more targeted, hypothesis-driven approaches such as seed-based analyses, which demonstrate greater reliability across modalities.
 
 # Introduction
 
@@ -120,7 +123,7 @@ Finally, we hypothesized that eigenvector centrality in the +PD group is negativ
 
 ## Experimental procedure
 
-Data collection took place at the uMOVE core facility, Karolinska University Hospital, Solna, Stockholm. All data was collected during a single experimental session. Collected data consisted of resting-state +fNIRS data, cognitive screening data (+MoCA), and a clinical test of balance (Mini-BESTest). The +PD group also performed the Movement Disorder Society sponsored revision of the Unified Parkinson’s Disease Rating Scale (MDS-UPDRS) to assess disease severity at the time of measurement.
+Data collection took place at the uMOVE core facility, Karolinska University Hospital, Solna, Stockholm. All data was collected during a single experimental session. Collected data consisted of resting-state +fNIRS data, cognitive screening data (+MoCA), and a clinical test of balance (Mini-BESTest). The +PD group also performed the Movement Disorder Society sponsored revision of the Unified Parkinson’s Disease Rating Scale (MDS-UPDRS) to assess disease severity at the time of measurement. The side of predominant motor symptoms was assigned with a minimum 2-point difference between MDS-UPDRS III items which are scored on each side [@poletti2013]. Handedness of participants was assessed with the +EHI [@oldfield1971].
 
 ## Data acquisition
 
@@ -150,24 +153,29 @@ To test correlation hypotheses in H3, correlation between eigenvector centrality
 
 Finally, as an exploratory analysis in addition to the eigenvector centrality comparison, the analysis pipeline was run for all other available global and nodal BRAPH graph metrics and compared between groups. 
 
-Statistical analysis of BRAPH2.0 output was performed in R [@rcoreteam2022] (v4.5.2). Effect sizes were calculated using the *effectsize* package [@ben-shachar2020], with Hedges’ g for continuous variables and Cohen’s h for proportions. Visualizations of nodal effect locations were performed in Python (v3.14.5) using the *mni-to-atlas* library on the extended Human Connectome Project multimodal parcellation atlas (HCPEx) [@huang2022b].
+Statistical analysis of demographic data and BRAPH2.0 output was performed in R [@rcoreteam2022] (v4.5.2).  Normality of data was assessed with the Shapiro-Wilk normality test and visually with q-q plots. Effect sizes were calculated using the *effectsize* package [@ben-shachar2020], with Hedges’ g for continuous variables and Cohen’s h for proportions. Visualizations of nodal effect locations were performed in Python (v3.14.5) using the *mni-to-atlas* library on the extended Human Connectome Project multimodal parcellation atlas (HCPEx) [@huang2022b].
 
 # Results
 
 ## Participants
 
-In total, 57 participants took part in the study (Table 1).
+In total, 57 participants took part in the study (Table 1). The +PD group had poorer balance performance (median Mini-BESTest 20 vs 25, p < 0.001) as well as lower global cognitive function (median MoCA 25 vs 27, p = 0.013) compared to controls. Participants were right-handed (+EHI laterality quotient > 40). Motor symptom predominance in the +PD group was mixed (left-predominant 40.7%, no asymmetry 22.2%, right-predominant 37.0%).
 
-| Variable               | Control (N=30)     | Parkinson (N=27)   | p value |
-|------------------------|---------------------|----------------------|---------|
-| Gender, female         | 10 (34.5%)          | 10 (37.0%)           | 0.84    |
-| Age, yrs               | 68.03 (6.74)        | 69.63 (6.77)         | 0.53    |
-| Weight, kg             | 75.31 (13.98)       | 76.81 (19.05)        | 0.99    |
-| Height, cm             | 175.24 (10.25)      | 174.63 (9.22)        | 0.79    |
-| Mini-BESTest score     | 24.47 (2.43)        | 19.41 (5.09)         | < 0.01  |
-| MDS-UPDRS III motor score          | NA                  | 31.78 (14.89)        |        |
-| LEDD                   | NA                  | 714.07 (325.12)      |        |
+| Variable                              | Control (N = 301) | Parkinson (N = 271) | p-value |
+|--------------------------------------|------------------|---------------------|--------|
+| Gender, female                       | 10 (34%)         | 10 (37%)            | 0.8    |
+| Age, yrs                             | 68 (7)           | 70 (7)              | 0.4    |
+| Weight, kg                           | 75 (14)          | 77 (19)             | 0.7    |
+| Height, cm                           | 175 (10)         | 175 (9)             | 0.8    |
+| MoCA score                           | 27 (26, 28)      | 25 (24, 27)         | 0.013  |
+| Mini-BESTest score                   | 25 (24, 26)      | 20 (18, 24)         | <0.001 |
+| Handedness laterality quotient       | 88 (69, 100)     | 86 (68, 100)        | 0.9    |
+| MDS-UPDRS III motor score            | NA (NA)          | 32 (15)             |        |
+| LEDD                                 | NA (NA, NA)      | 600 (475, 900)      |        |
 : Table 1 - Demographics
+
+1. n (%); Mean (SD); Median (Q1, Q3)
+2. Pearson’s Chi-squared test; Welch Two Sample t-test; Wilcoxon rank sum test
 
 ## Eigenvector centrality
 
@@ -219,9 +227,9 @@ In the exploratory analysis, it was found that a node in the left +PFC belonged 
 
 The +FPN is one of the core cognitive control networks, acting as a hub that allows for flexibly modulating cognitive control via tight integration with many other functional brain networks [@marek2018]. In +PD, a recent metabolic network connectivity study of seven networks found that the +FPN specifically had an increased connectivity with the +SMN compared to +HC [@chen2024]. Some studies find that +FPN connectivity relates to cognitive function: lower +MoCA scores have been linked with lower intra-network connectivity of the +FPN [@yeager2024], and cognitively stable individuals with +PD display greater network resiliency of the +FPN compared to those with cognitive decline [@cascone2021].
 
-The alterations in +FPN connectivity might also depend on medication: +FPN connectivity is enhanced by dopaminergic treatment [@liu2022b], and differences in functional connectivity within the +FPN has been found to differentiate those who experience dopaminergic treatment-related motor complications in +PD compared to those who do not [@demicco2024].
+The alterations in +FPN connectivity might also depend on medication: +FPN connectivity is enhanced by dopaminergic treatment [@liu2022b], and differences in functional connectivity within the +FPN has been found to differentiate those who experience dopaminergic treatment-related motor complications in +PD compared to those who do not [@demicco2024]. 
 
-While the Core-Periphery finding might be related to +FPN alterations in +PD, given the exploratory nature of this finding, targeted replication is needed in order to confirm this.
+The reason why this finding was localized specifically to the left +PFC is unclear. Although the sample studied was right-handed, motor symptom predominance among subjects in which this node was part of the core network was mixed. While the Core-Periphery finding might be related to +FPN alterations in +PD, given the exploratory nature of this finding, targeted replication is needed in order to confirm this.
 
 ## Limitations
 
