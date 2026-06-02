@@ -1,3 +1,89 @@
+---
+title: manuscript
+titlepage: false
+author: ""
+date: ""
+output:
+  docx:
+    toc: false
+    output: manuscript.docx
+    metadata:
+      csl: /Users/alexander.kvist/Zotero/styles/apa.csl
+    bibliography: /Users/alexander.kvist/Zotero/zotero_library.bib
+    filter:
+      - pandoc-acro
+      - pandoc-crossref
+    citeproc: true
+    verbose: true
+acronyms:
+  PD:
+    short: PD
+    long: Parkinson's disease
+  AD:
+    short: AD
+    long: Alzheimer's disease
+  fNIRS:
+    short: fNIRS
+    long: functional near-infrared spectroscopy
+  fMRI:
+    short: fMRI
+    long: functional magnetic resonance imaging
+  EEG:
+    short: EEG
+    long: electroencephalography
+  BOLD:
+    short: BOLD
+    long: blood-oxygen level dependent response
+  rsFC:
+    short: rsFC
+    long: resting-state functional connectivity
+  IPL:
+    short: IPL
+    long: inferior parietal lobule
+  STG:
+    short: STG
+    long: superior temporal gyrus
+  SMG:
+    short: SMG
+    long: supramarginal gyrus
+  PFC:
+    short: PFC
+    long: prefrontal cortex
+  HbO:
+    short: HbO
+    long: oxygenated hemoglobin
+  HbR:
+    short: HbR
+    long: deoxygenated hemoglobin
+  MoCA:
+    short: MoCA
+    long: Montreal Cognitive Assessment
+  LEDD:
+    short: LEDD
+    long: levodopa equivalent daily dose
+  OSF:
+    short: OSF
+    long: Open Science Framework
+  ALE:
+    short: ALE
+    long: activation likelihood estimation
+  SCI:
+    short: SCI
+    long: scalp coupling index
+  DPF:
+    short: DPF
+    long: differential path-length factor
+  FPN:
+    short: FPN
+    long: frontoparietal network
+  SMN:
+    short: SMN
+    long: somatomotor network
+  EHI:
+    short: EHI
+    long: Edinburgh Handedness Inventory
+
+---
 
 # Abstract
 
