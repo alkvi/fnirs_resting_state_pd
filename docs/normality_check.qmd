@@ -1,0 +1,189 @@
+---
+title: "fNIRS Parkinson resting-state study - normality check"
+bibliography: /Users/alexander.kvist/Zotero/zotero_library.bib
+format:
+  html:
+    code-fold: true
+    code-summary: "Show the code"
+    embed-resources: true
+    toc: true
+    toc-depth: 3
+    toc-expand: 3
+    theme: flatly
+    output-file: normality.html
+
+editor: source
+---
+
+```{css}
+/*| echo: false */
+figcaption {
+  margin: auto;
+  text-align: center;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=10, fig.height=5)
+
+# load library
+library(ggpubr)
+library(ggplot2)
+library(patchwork)
+library(labelled)
+library(gt)
+library(gtExtras)
+library(rstatix)
+library(purrr)
+library(dplyr)
+
+```
+
+# Load data
+
+```{r}
+
+# Load and prepare all data
+redcap_file <- "../data/REDcap_data.csv"
+updrs_file <- "../data/REDcap_data_updrs.csv"
+
+# This file contains data from the 1st measurement, including diagnosis date
+redcap_file_parkmove <- "../../Park-MOVE_fnirs_dataset_v2/REDcap_data/All_REDcap_data.csv"
+demo_file_parkmove <- "../../Park-MOVE_fnirs_dataset_v2/basic_demographics.csv"
+
+# This file has measurement date
+measurement_date_file <- "../data/measurement_dates_rs_fnirs.csv"
+
+redcap_data <- read.csv(redcap_file)
+redcap_data <- redcap_data[c("id_nummer", "moca_sum", "moca_sum_adjusted", "mb_total", "led_total", 
+                             "frandin_grimby", "ramlat_12_man", "antal_ggr_ramlat_12_man", "laterality_quotient")]
+redcap_data['ramlat_12_man'][redcap_data['ramlat_12_man'] == 0] <- 'No'
+redcap_data['ramlat_12_man'][redcap_data['ramlat_12_man'] == 1] <- 'Yes'
+redcap_data$ramlat_12_man <- factor(redcap_data$ramlat_12_man, levels=c('No', 'Yes'))
+
+updrs_data <- read.csv(updrs_file)
+updrs_data$updrs_3_total <- rowSums(updrs_data[, 35:66], na.rm = TRUE)
+updrs_data <- updrs_data[c("id_nummer", "updrs_3_total", "mdsupdrs3_hy")]
+updrs_data$updrs_3_total[grepl("^FNP1", updrs_data$id_nummer)] <- NA
+
+# Merge REDcap demographics data and UPDRS data
+all_subject_data <- merge(redcap_data, updrs_data, by = "id_nummer", all = TRUE)
+names(all_subject_data)[names(all_subject_data) == "id_nummer"] <- "subject"
+
+# Make the subject names the same format
+all_subject_data <- all_subject_data %>%
+  mutate(subject = gsub("_rs", "", subject))
+
+# Data from original study for demographics
+redcap_data_parkmove <- read.csv(redcap_file_parkmove)
+names(redcap_data_parkmove)[names(redcap_data_parkmove) == "id_nummer"] <- "subject"
+redcap_data_parkmove <- redcap_data_parkmove[redcap_data_parkmove$subject %in% all_subject_data$subject, ]
+demo_data_parkmove <- read.csv(demo_file_parkmove)
+demo_data_parkmove <- demo_data_parkmove[demo_data_parkmove$subject %in% all_subject_data$subject, ]
+demo_data_parkmove <- demo_data_parkmove[c("subject", "sex", "age", "weight", "height")]
+demo_data_parkmove['sex'][demo_data_parkmove['sex'] == 0] <- 'Male'
+demo_data_parkmove['sex'][demo_data_parkmove['sex'] == 1] <- 'Female'
+demo_data_parkmove$sex <- factor(demo_data_parkmove$sex, levels=c('Male', 'Female'))
+
+# Get disease duration via diagnosis date and measurement date
+diagnosis_data <- redcap_data_parkmove[c("subject", "crf_pd_year_phone")]
+measurement_dates <- read.csv(measurement_date_file, sep=";")
+measurement_dates$measurement_date_t1 <- as.Date(measurement_dates$measurement_date_t1, format = "%Y-%m-%d")
+measurement_dates$year <- format(measurement_dates$measurement_date_t1, "%Y")
+measurement_dates <- measurement_dates[c("subject", "year")]
+measurement_dates <- merge(diagnosis_data, measurement_dates, by = "subject", all = TRUE)
+measurement_dates$disease_dur <- as.numeric(measurement_dates$year) - as.numeric(measurement_dates$crf_pd_year_phone)
+measurement_dates <- measurement_dates[c("subject", "disease_dur")]
+all_subject_data <- merge(all_subject_data, measurement_dates, by = "subject", all = TRUE)
+
+# Add other demographics
+all_subject_data <- merge(all_subject_data, demo_data_parkmove, by = "subject", all = TRUE)
+
+# Assign group function
+assign_group <- function(df) {
+  df$group <- case_when(
+    startsWith(df$subject, "FNP1") ~ "Control",
+    startsWith(df$subject, "FNP2") ~ "Parkinson",
+    TRUE ~ NA_character_
+  )
+  df$group <- factor(df$group, levels=c('Control', 'Parkinson'))
+  return(df)
+}
+
+all_subject_data <- assign_group(all_subject_data)
+
+```
+
+# Check normality via shapiro_test
+
+The null hypothesis of these tests is that “sample distribution is normal”. If the test is significant, the distribution is non-normal.
+
+```{r}
+
+# Normality testing, via Shapiro-Wilks
+# Function to apply shapiro_test to each variable
+run_shapiro_tests <- function(data, variables) {
+  map(variables, ~ data %>%
+        select(group, value = all_of(.x)) %>%
+        group_by(group) %>%
+        shapiro_test(value) %>%
+        mutate(variable = .x))
+}
+
+demo_variables <- c(
+  "age",
+  "weight",
+  "height",
+  "moca_sum",
+  "mb_total",
+  "laterality_quotient"
+)
+
+norm_table_demo <- bind_rows(run_shapiro_tests(all_subject_data, demo_variables))
+
+# PD variables only
+fnp2_data <- all_subject_data %>%
+  filter(grepl("^FNP2", subject))
+
+fnp2_updrs <- fnp2_data %>%
+  select(updrs_3_total) %>%
+  shapiro_test(updrs_3_total)
+
+fnp2_updrs
+
+fnp2_led <- fnp2_data %>%
+  select(led_total) %>%
+  shapiro_test(led_total)
+
+fnp2_led
+
+```
+
+```{r, results='asis'}
+
+norm_table_demo |>
+  gt() |>
+  fmt_number(
+    columns = c(statistic, p),
+    decimals = 3,
+    use_seps = FALSE
+  )
+
+```
+
+# QQ plots
+
+```{r, echo=FALSE, warning=FALSE}
+
+ggqqplot(all_subject_data, x = "age", facet.by = "group", ylab = "Age")
+ggqqplot(all_subject_data, x = "weight", facet.by = "group", ylab = "Weight")
+ggqqplot(all_subject_data, x = "height", facet.by = "group", ylab = "Height")
+ggqqplot(all_subject_data, x = "moca_sum", facet.by = "group", ylab = "MoCA")
+ggqqplot(all_subject_data, x = "mb_total", facet.by = "group", ylab = "Mini-BESTest")
+ggqqplot(all_subject_data, x = "laterality_quotient", facet.by = "group", ylab = "Laterality quotient")
+ggqqplot(all_subject_data, x = "updrs_3_total", facet.by = "group", ylab = "UPDRS III")
+ggqqplot(all_subject_data, x = "led_total", facet.by = "group", ylab = "LEDD")
+
+```
+

@@ -38,6 +38,7 @@ library(cowplot)
 
 library(arsenal)
 library(gt)
+library(gtsummary)
 
 library(effectsize)
 
@@ -153,6 +154,7 @@ redcap_data$ramlat_12_man <- factor(redcap_data$ramlat_12_man, levels=c('No', 'Y
 updrs_data <- read.csv(updrs_file)
 updrs_data$updrs_3_total <- rowSums(updrs_data[, 35:66], na.rm = TRUE)
 updrs_data <- updrs_data[c("id_nummer", "updrs_3_total", "mdsupdrs3_hy")]
+updrs_data$updrs_3_total[grepl("^FNP1", updrs_data$id_nummer)] <- NA
 
 # Merge REDcap demographics data and UPDRS data
 all_subject_data <- merge(redcap_data, updrs_data, by = "id_nummer", all = TRUE)
@@ -187,7 +189,6 @@ all_subject_data <- merge(all_subject_data, measurement_dates, by = "subject", a
 # Add other demographics
 all_subject_data <- merge(all_subject_data, demo_data_parkmove, by = "subject", all = TRUE)
 
-
 # Assign group function
 assign_group <- function(df) {
   df$group <- case_when(
@@ -206,8 +207,11 @@ all_subject_data <- assign_group(all_subject_data)
 ## Demographics
 
 ```{r, results='asis'}
+#| warning: false
 
-# https://cran.r-project.org/web/packages/arsenal/vignettes/tableby.html
+# Demographics via gtsummary
+# https://www.danieldsjoberg.com/gtsummary/
+# Might warn about controls missing PD variables, and ties; ignore this.
 
 # Cleaner names
 labels(all_subject_data)  <- c(
@@ -217,21 +221,48 @@ labels(all_subject_data)  <- c(
   height = "Height, cm",
   frandin_grimby = "Frändin-Grimby",
   ramlat_12_man = "Falls in last 12 months, yes",
+  moca_sum = "MoCA score",
   mb_total = "Mini-BESTest score",
   updrs_3_total = "MDS-UPDRS III motor score",
   led_total = "LEDD",
   laterality_quotient = "Handedness laterality quotient")
 
-# Properties for all tables
-mycontrols  <- tableby.control(numeric.test="kwt", cat.test="chisq",  cat.simplify = TRUE, cat.stats="countpct",
-                               numeric.simplify=TRUE, numeric.stats=c("meansd"),
-                               digits=2, digits.p=2, digits.pct=1)
+tab1_demo <-
+  tbl_summary(
+    all_subject_data,
+    include = c(sex, age, weight, height, moca_sum,
+                mb_total, laterality_quotient, updrs_3_total, led_total),
+    by = group,
+    missing = "no",
+    digits = list(age ~ 0),
+    type = list(
+      sex ~ "dichotomous"
+    ),
+    value = list(
+      sex ~ "Female"
+    ),
+    statistic = list(
+      # default for continuous
+      all_continuous() ~ "{mean} ({sd})",
+      # non-parametric
+      moca_sum ~ "{median} ({p25}, {p75})",
+      mb_total ~ "{median} ({p25}, {p75})",
+      laterality_quotient ~ "{median} ({p25}, {p75})",
+      led_total ~ "{median} ({p25}, {p75})"
+    )
+  ) |>
+  add_p(
+    test = list(
+      all_continuous() ~ "t.test",
+      moca_sum ~ "wilcox.test",
+      mb_total ~ "wilcox.test",
+      laterality_quotient ~ "wilcox.test"
+    )
+  ) |>
+  bold_p(t = 0.05) |>
+  modify_header(label ~ "**Variable**")
 
-# Tables
-tab1 <- tableby(group ~ sex + age + weight + height +
-                mb_total + laterality_quotient + updrs_3_total + led_total, data=all_subject_data, control=mycontrols)
-
-summary(tab1, title = "Table 1 - Demographics")
+tab1_demo
 
 ```
 
@@ -247,6 +278,7 @@ If there is a two-point difference, assign a side dominance, as in:
 - https://doi.org/10.3389/fneur.2021.711045
 
 ```{r, results='asis'}
+#| warning: false
 
 updrs_data <- read.csv(updrs_file)
 
@@ -336,8 +368,18 @@ labels(updrs_data)  <- c(
 )
 
 # Tables
-lat_table <- tableby(group ~ right_total + left_total + asymmetry_total + asymmetry_2pt, data=updrs_data, control=mycontrols)
-summary(lat_table, title = "Table - Affected side")
+lat_table <-
+  tbl_summary(
+    updrs_data,
+    by = group,
+    include = c(right_total, left_total, asymmetry_total, asymmetry_2pt),
+    missing = "no",
+    statistic = all_continuous() ~ "{median} ({p25}, {p75})"
+  ) |>
+  modify_header(label ~ "**Variable**") |>
+  modify_caption("**Table - Affected side**")
+
+lat_table
 
 ```
 ## Eigenvector centrality
