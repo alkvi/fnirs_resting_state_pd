@@ -31,6 +31,7 @@ knitr::opts_chunk$set(fig.width=10, fig.height=5)
 library(dplyr)
 library(tidyr)
 library(readxl)
+library(stringr)
 
 library(ggpubr)
 library(ggplot2)
@@ -111,6 +112,30 @@ bad_shorts_clean |>
     title = "Bad shorts per session"
   )
 
+# Also count how many bads we have
+bad_counts <- bad_shorts |>
+  mutate(
+    n_bad = case_when(
+      is.na(bad_shorts) ~ 0,
+      bad_shorts == "" ~ 0,
+      TRUE ~ str_count(bad_shorts, ",") + 1
+    )
+  )
+
+summary_stats <- bad_counts |>
+  summarise(
+    median = median(n_bad),
+    q1 = quantile(n_bad, 0.25),
+    q3 = quantile(n_bad, 0.75),
+    min = min(n_bad),
+    max = max(n_bad)
+  )
+
+summary_stats |>
+  gt() |>
+  tab_header(
+    title = "Bad shorts per session count"
+  )
 
 ```
 
