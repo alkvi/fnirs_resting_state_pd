@@ -92,7 +92,7 @@ acronyms:
 
 **Background**: Altered resting-state functional connectivity has been reported in Parkinson’s disease (PD), including changes in eigenvector centrality within temporoparietal regions. While functional magnetic resonance imaging (fMRI) remains the standard for studying resting-state networks, functional near-infrared spectroscopy (fNIRS) is becoming increasingly used to study these networks. However, findings across resting-state fNIRS studies are heterogeneous, and replication of resting-state fMRI results remain limited.
 
-**Objective**: To replicate previously reported differences in eigenvector centrality in resting-state fMRI studies between healthy controls and individuals with PD, and examine associations with clinical and functional measures using resting-state fNIRS.
+**Objective**: To replicate previously reported differences in eigenvector centrality in resting-state fMRI studies between healthy controls and individuals with PD and examine associations with clinical and functional measures using resting-state fNIRS.
 
 **Methods**: Fifty-seven participants (30 controls, 27 PD) underwent resting-state fNIRS measurements across two sessions, measuring left and right hemispheres separately. Pre-registered whole-hemisphere network analyses were conducted to assess group differences in eigenvector centrality and correlations with clinical and functional measures.
 
@@ -201,7 +201,7 @@ Exploratory analyses of additional graph metrics revealed one channel in the lef
 
 # Discussion
 
-In this study, pre-registered hypotheses based on resting-state +fMRI findings in people with +PD were tested in a cohort of participants with +PD measured with resting-state +fNIRS. Network analysis revealed limited group differences between participants with +PD and +HC. While a single channel in the left +IPL showed reduced eigenvector centrality in the Parkinson’s disease group, this effect did not survive correction for multiple comparisons, and no associations were found with motor symptom severity, medication, disease duration, or cognition. Exploratory analysis of other graph metrics indicated an increased core–periphery involvement in the left +PFC in participants with +PD.
+In this study, pre-registered hypotheses based on resting-state +fMRI findings in people with +PD were tested in a cohort of participants with +PD measured with resting-state +fNIRS. Network analysis revealed limited group differences between participants with +PD and +HC. While a single channel in the left +IPL showed reduced eigenvector centrality in participants with +PD, this effect did not survive correction for multiple comparisons, and no associations were found with motor symptom severity, medication, disease duration, or cognition. Exploratory analysis of other graph metrics indicated an increased core–periphery involvement in the left +PFC in participants with +PD.
 
 ## Previous resting-state fMRI findings could not be replicated
 
