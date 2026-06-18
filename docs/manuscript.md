@@ -120,7 +120,7 @@ However, these comparisons with +fMRI literature have focused on healthy partici
 
 ## Participants
 
-People with +PD (≥ 60 years, clinical diagnosis ≥ 6 months prior to enrollment) and +HC were re-invited from the Park-MOVE cohort [@franzen2023], who had previously participated in an +fNIRS study on complex walking. Exclusion criteria for the +HC group were medical conditions affecting gait and balance, or severe hearing or visual impairment. Exclusion criteria for people with +PD included other neurological diseases, severe hearing or visual impairment, other medical conditions affecting gait and balance, and speech difficulties such as aphasia. Participants with +PD were on their usual medication schedule.
+People with +PD (≥ 60 years, clinical diagnosis ≥ 6 months prior to enrollment) and +HC were re-invited from the Park-MOVE cohort [@franzen2023], who had previously participated in an +fNIRS study on complex walking. Exclusion criteria for the +HC group were medical conditions affecting gait and balance, or severe hearing or visual impairment. Exclusion criteria for people with +PD included other neurological diseases, severe hearing or visual impairment, other medical conditions affecting gait and balance, and speech difficulties such as aphasia. Participants with +PD were on their usual medication schedule. Participants received verbal and written information about the study and gave written consent prior to participation.
 
 ## Pre-registration and hypotheses
 
