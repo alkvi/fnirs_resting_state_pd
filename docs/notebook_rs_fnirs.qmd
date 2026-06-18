@@ -609,6 +609,9 @@ for ax in display.axes.values():
 
 plotting.show()
 
+fig = display.frame_axes.figure
+fig.savefig("../results_figures/markers.pdf", bbox_inches="tight")
+
 ```
 
 
@@ -660,8 +663,15 @@ plot4 <- ggplot(pd_data, aes(x = moca_sum_adjusted, y = value)) +
        x = "MoCA score",
        y = "Eigenvector Centrality")
 
-plot_grid(plotlist=list(plot1, plot2, plot3, plot4), ncol=2, nrow=2)
+final_plot <- plot_grid(plotlist=list(plot1, plot2, plot3, plot4), ncol=2, nrow=2)
 
+ggsave(
+  filename = "../results_figures/corr.pdf",
+  plot = final_plot,
+  units = "in"
+)
+
+final_plot
 
 ```
 
