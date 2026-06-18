@@ -100,6 +100,12 @@ acronyms:
 
 **Conclusions**: Previously reported eigenvector centrality differences were not replicated. Results highlight uncertainty in whole-brain network metrics derived from fNIRS and underscore the need for larger sample sizes. Observed prefrontal core-periphery differences might relate to frontoparietal network alterations in PD. Future studies may benefit from more targeted, hypothesis-driven approaches such as seed-based analyses, which demonstrate greater reliability across modalities.
 
+**Highlights**
+
+- Resting-state connectivity in people with Parkinson's disease studied with fNIRS
+- Prior resting-state fMRI connectivity findings could not be replicated with fNIRS
+- Exploratory findings of prefrontal network changes in people with Parkinson's disease
+
 # Introduction
 
 When the brain is at rest, it has been shown that there are synchronized low-frequency oscillations of neuronal activity, which can be measured via the +BOLD [@biswal1995]. These oscillations exhibit consistent structural patterns across individuals and are referred to as +rsFC [@damoiseaux2006]. Several +rsFC networks are known in humans and are involved in a wide variety of functions, from memory and executive functioning to motor function [@damoiseaux2006; @uddin2019], and have been extensively studied using +fMRI [@biswal2025].
@@ -246,5 +252,9 @@ This pre-registered resting-state +fNIRS study did not replicate previously repo
 # Data availability
 
 All code is available via <https://github.com/alkvi/fnirs_resting_state_pd> and the open lab notebook at <https://alkvi.github.io/fnirs_resting_state_pd>. The original raw data are not publicly available due to Swedish/EU law, but are located with restricted access in a central repository (<https://doi.org/10.48723/vscr-eq07>), where sharing will be regulated via a data transfer and user agreement upon a reasonable request.
+
+# Acknowledgements
+
+We thank all participants who made this study possible and the uMOVE core facility. We also extend our appreciation to Mite Mijalkov for helpful guidance regarding the BRAPH toolbox.
 
 # References
