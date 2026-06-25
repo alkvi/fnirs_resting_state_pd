@@ -8,7 +8,7 @@
 session_to_run = "left";
 
 % Which hemo measure?
-hemo_measure = 'cbsi';
+hemo_measure = 'hbo';
 
 % Load the NIRx probe used
 probe_folder = "data_public/nirx_probe_" + session_to_run;

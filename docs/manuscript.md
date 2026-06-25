@@ -8,7 +8,7 @@ output:
     toc: false
     output: manuscript.docx
     metadata:
-      csl: /Users/alexander.kvist/Zotero/styles/apa.csl
+      csl: /Users/alexander.kvist/Zotero/styles/cse-name-year.csl
     bibliography: /Users/alexander.kvist/Zotero/zotero_library.bib
     filter:
       - pandoc-acro

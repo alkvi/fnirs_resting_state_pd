@@ -1,6 +1,5 @@
 .DS_Store*
 
-data
 data/*
 
 quality_control/*.png
@@ -13,6 +12,5 @@ docs/pandoc-acro
 
 .Rhistory
 
-*.mat
 exploratory_figures
 visualize_graph.py
