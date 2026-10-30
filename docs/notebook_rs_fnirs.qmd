@@ -170,7 +170,7 @@ braph_right_group_data <- read.csv(braph_right_group)
 braph_right_subject_data <- read.csv(braph_right_subject)
 
 redcap_data <- read.csv(redcap_file)
-redcap_data <- redcap_data[c("id_nummer", "moca_sum", "moca_sum_adjusted", "mb_total", "led_total", 
+redcap_data <- redcap_data[c("id_nummer", "moca_sum", "moca_sum_adjusted", "mb_total", "led_total",
                              "frandin_grimby", "ramlat_12_man", "antal_ggr_ramlat_12_man", "laterality_quotient")]
 redcap_data['ramlat_12_man'][redcap_data['ramlat_12_man'] == 0] <- 'No'
 redcap_data['ramlat_12_man'][redcap_data['ramlat_12_man'] == 1] <- 'Yes'
@@ -249,6 +249,7 @@ labels(all_subject_data)  <- c(
   moca_sum = "MoCA score",
   mb_total = "Mini-BESTest score",
   updrs_3_total = "MDS-UPDRS III motor score",
+  mdsupdrs3_hy = "Hoehn & Yahr stage",
   led_total = "LEDD",
   laterality_quotient = "Handedness laterality quotient")
 
@@ -256,7 +257,7 @@ tab1_demo <-
   tbl_summary(
     all_subject_data,
     include = c(sex, age, weight, height, moca_sum,
-                mb_total, laterality_quotient, updrs_3_total, led_total),
+                mb_total, laterality_quotient, updrs_3_total, mdsupdrs3_hy, led_total),
     by = group,
     missing = "no",
     digits = list(age ~ 0),
@@ -539,9 +540,19 @@ matched_atlas_rows |>
 
 ```
 
+```{r}
+
+library(reticulate)
+
+use_virtualenv(
+  normalizePath("venv"),
+  required = TRUE
+)
+
+```
+
 ```{python}
 
-import pandas as pd
 import numpy as np
 from mni_to_atlas import AtlasBrowser
 
@@ -553,6 +564,35 @@ atlas = AtlasBrowser("HCPEx")
 projected_coords = atlas.project_to_nearest(coord)
 projected_regions = atlas.find_regions(projected_coords, plot=True)
 
+
+```
+
+### Location on glass brain
+
+```{python}
+#| warning: false
+
+from nilearn import plotting
+from matplotlib.pyplot import cm
+import matplotlib.patheffects as pe
+
+coords = [
+    (-39, -54, 46)
+]
+
+display = plotting.plot_markers(
+    [1],
+    coords,
+    node_size=150,
+    node_cmap=cm.Purples,
+    node_vmin=0,
+    node_vmax=1,
+)
+
+plotting.show()
+
+fig = display.frame_axes.figure
+fig.savefig("../results_figures/location_1.svg", bbox_inches="tight")
 
 ```
 
@@ -631,10 +671,58 @@ merged_data <- assign_group(merged_data)
 # Filter data for group PD
 pd_data <- merged_data %>% filter(group == "Parkinson")
 
+
+library(dplyr)
+library(ggplot2)
+
+# Compute correlations
+corrs <- tibble(
+  variable = c("updrs_3_total", "led_total", "disease_dur", "moca_sum_adjusted")
+) %>%
+  rowwise() %>%
+  mutate(
+    test = list(cor.test(
+      pd_data[[variable]],
+      pd_data$value,
+      method = corr_method
+    )),
+    r = test$estimate,
+    p = test$p.value
+  ) %>%
+  ungroup() %>%
+  mutate(
+    p_fdr = p.adjust(p, method = "fdr")
+  )
+
+lab_updrs <- with(
+  corrs %>% filter(variable == "updrs_3_total"),
+  sprintf("r = %.2f\nFDR p = %.3f", r, p_fdr)
+)
+
+lab_led <- with(
+  corrs %>% filter(variable == "led_total"),
+  sprintf("r = %.2f\nFDR p = %.3f", r, p_fdr)
+)
+
+lab_dur <- with(
+  corrs %>% filter(variable == "disease_dur"),
+  sprintf("r = %.2f\nFDR p = %.3f", r, p_fdr)
+)
+
+lab_moca <- with(
+  corrs %>% filter(variable == "moca_sum_adjusted"),
+  sprintf("r = %.2f\nFDR p = %.3f", r, p_fdr)
+)
+
 plot1 <- ggplot(pd_data, aes(x = updrs_3_total, y = value)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  stat_cor(method = corr_method) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    hjust = 1.1, vjust = 1.5,
+    label = lab_updrs
+  ) +
   labs(title = "Correlation between EC values and MDS-UPDRS",
        x = "MDS-UPDRS 3 motor score",
        y = "Eigenvector Centrality")
@@ -642,7 +730,12 @@ plot1 <- ggplot(pd_data, aes(x = updrs_3_total, y = value)) +
 plot2 <- ggplot(pd_data, aes(x = led_total, y = value)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  stat_cor(method = corr_method) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    hjust = 1.1, vjust = 1.5,
+    label = lab_led
+  ) +
   labs(title = "Correlation between EC values and LEDD",
        x = "LEDD",
        y = "Eigenvector Centrality")
@@ -650,7 +743,12 @@ plot2 <- ggplot(pd_data, aes(x = led_total, y = value)) +
 plot3 <- ggplot(pd_data, aes(x = disease_dur, y = value)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  stat_cor(method = corr_method) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    hjust = 1.1, vjust = 1.5,
+    label = lab_dur
+  ) +
   labs(title = "Correlation between EC values and disease duration",
        x = "disease duration",
        y = "Eigenvector Centrality")
@@ -658,7 +756,12 @@ plot3 <- ggplot(pd_data, aes(x = disease_dur, y = value)) +
 plot4 <- ggplot(pd_data, aes(x = moca_sum_adjusted, y = value)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  stat_cor(method = corr_method) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    hjust = 1.1, vjust = 1.5,
+    label = lab_moca
+  ) +
   labs(title = "Correlation between EC values and MoCA",
        x = "MoCA score",
        y = "Eigenvector Centrality")
@@ -886,5 +989,130 @@ coord = np.array([[-21, 52, 1],])
 atlas = AtlasBrowser("HCPEx")
 projected_coords = atlas.project_to_nearest(coord)
 projected_regions = atlas.find_regions(projected_coords, plot=True)
+
+```
+
+
+```{python}
+#| warning: false
+
+from nilearn import plotting
+from matplotlib.pyplot import cm
+import matplotlib.patheffects as pe
+
+coords = [
+    (-21, 52, 1)
+]
+
+display = plotting.plot_markers(
+    [1],
+    coords,
+    node_size=150,
+    node_cmap=cm.Purples,
+    node_vmin=0,
+    node_vmax=1,
+)
+
+plotting.show()
+
+fig = display.frame_axes.figure
+fig.savefig("../results_figures/location_2.svg", bbox_inches="tight")
+
+```
+
+# Additional analyses
+
+## Which side was measured first?
+
+```{r}
+
+redcap_data <- read.csv(redcap_file)
+redcap_data <- redcap_data[c("id_nummer", "setup_1_side", "setup_2_side")]
+redcap_data['setup_1_side'][redcap_data['setup_1_side'] == 0] <- 'Left'
+redcap_data['setup_1_side'][redcap_data['setup_1_side'] == 1] <- 'Right'
+redcap_data['setup_2_side'][redcap_data['setup_2_side'] == 0] <- 'Left'
+redcap_data['setup_2_side'][redcap_data['setup_2_side'] == 1] <- 'Right'
+redcap_data$setup_1_side <- factor(redcap_data$setup_1_side, levels=c('Left', 'Right'))
+redcap_data$setup_2_side <- factor(redcap_data$setup_2_side, levels=c('Left', 'Right'))
+names(redcap_data)[names(redcap_data) == "id_nummer"] <- "subject"
+redcap_data <- assign_group(redcap_data)
+
+redcap_data |>
+  tbl_summary(
+    by = group,
+    include = c(setup_1_side, setup_2_side),
+    statistic = all_categorical() ~ "{n} ({p}%)"
+  ) |>
+  add_overall() |>
+  bold_labels()
+
+```
+
+## Adjust across all exploratory metrics
+
+```{r}
+
+braph_expl_left_global <- "../data/braph_left_exploratory_results_global.csv"
+braph_expl_left_nodal <- "../data/braph_left_exploratory_results_nodal.csv"
+braph_expl_right_global <- "../data/braph_right_exploratory_results_global.csv"
+braph_expl_right_nodal <- "../data/braph_right_exploratory_results_nodal.csv"
+braph_expl_left_subject = "../data/braph_left_exploratory_subject_results.csv"
+
+# Load the data files
+braph_expl_left_global_data <- read.csv(braph_expl_left_global)
+braph_expl_left_nodal_data <- read.csv(braph_expl_left_nodal)
+braph_expl_right_global_data <- read.csv(braph_expl_right_global)
+braph_expl_right_nodal_data <- read.csv(braph_expl_right_nodal)
+
+# FDR corr across all metrics, get top 5
+top_5_left <- braph_expl_left_nodal_data %>%
+  mutate(P2_FDR = p.adjust(P2, method = "fdr")) %>%
+  arrange(P2_FDR) %>%
+  slice_head(n = 5)
+top_5_right <- braph_expl_right_nodal_data %>%
+  mutate(P2_FDR = p.adjust(P2, method = "fdr")) %>%
+  arrange(P2_FDR) %>%
+  slice_head(n = 5) 
+
+# Display the top results
+top_5_left %>%
+  gt() %>%
+  fmt_number(
+    columns = where(is.numeric),
+    decimals = 3
+  )  %>%
+  tab_header(title = "Top exploratory results left")
+
+top_5_right %>%
+  gt() %>%
+  fmt_number(
+    columns = where(is.numeric),
+    decimals = 3
+  ) %>%
+  tab_header(title = "Top exploratory results right")
+
+braph_expl_left_nodal_data %>%
+  count(Measure, name = "Tests") %>%
+  arrange(Measure) %>%
+  gt() %>%
+  tab_header(
+    title = paste(
+      "Exploratory Nodal Measures (n =",
+      n_distinct(braph_expl_left_nodal_data$Measure),
+      ")"
+    )
+  )
+
+braph_expl_left_global_data %>%
+  count(Measure, name = "Tests") %>%
+  arrange(Measure) %>%
+  gt() %>%
+  tab_header(
+    title = paste(
+      "Exploratory Global Measures (n =",
+      n_distinct(braph_expl_left_global_data$Measure),
+      ")"
+    )
+  )
 
 ```
