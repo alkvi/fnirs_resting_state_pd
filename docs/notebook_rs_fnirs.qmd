@@ -1116,3 +1116,14 @@ braph_expl_left_global_data %>%
   )
 
 ```
+
+# SCI plot
+
+::: {#fig-sci layout-ncol=2}
+
+![Right hemisphere](../quality_control/figures/sci_right_percent.png)
+
+![Left hemisphere](../quality_control/figures/sci_left_percent.png)
+
+SCI pass rates by hemisphere (% of participants with bad channel).
+:::
